@@ -139,10 +139,59 @@ export function getObjectIcon(type: string): string {
     'ipv4-addr': '📍',
     'ipv6-addr': '📍',
     url: '🔗',
-    email: '✉️',
+    'email-addr': '✉️',
     file: '📁',
+    phone: '📱',
+    process: '⚙️',
+    'windows-registry-key': '🔑',
+    'x509-certificate': '📜',
     relationship: '🔗',
+    sighting: '👁️',
     'marking-definition': '🏷️',
+    note: '📝',
+    opinion: '💭',
   };
   return icons[type] || '📌';
+}
+
+export function getObjectSubtitle(obj: StixObject): string {
+  const type = obj.type;
+  const data = obj as any;
+
+  if (type === 'indicator') return data.labels?.[0] || 'Detection pattern';
+  if (type === 'malware') return data.labels?.[0] || 'Malicious software';
+  if (type === 'threat-actor') return data.resource_level || 'Threat actor';
+  if (type === 'campaign') return data.objective || 'Campaign';
+  if (type === 'report') return `${data.report_types?.[0] || 'Report'} • ${data.object_refs?.length || 0} objects`;
+  if (type === 'attack-pattern') return data.external_references?.[0]?.external_id || 'ATT&CK technique';
+  if (type === 'vulnerability') return data.labels?.[0] || 'Security vulnerability';
+  if (type === 'observed-data') return `${data.object_refs?.length || 0} observations`;
+  if (type === 'identity') return data.identity_class || 'Identity';
+  if (type === 'course-of-action') return 'Mitigation';
+  if (type === 'intrusion-set') return data.goals?.[0] || 'Intrusion set';
+  if (type === 'sighting') return `Seen ${data.count || 1} time(s)`;
+  if (type === 'relationship') return (data as any).relationship_type;
+  if (type === 'domain-name' || type === 'ipv4-addr' || type === 'ipv6-addr' || type === 'url' || type === 'email-addr') {
+    return data.value || type.replace('-', ' ');
+  }
+
+  return type.replace('-', ' ');
+}
+
+export function getObjectCategory(type: string): 'sdo' | 'sro' | 'sco' | 'meta' {
+  const sdos = [
+    'attack-pattern', 'campaign', 'course-of-action', 'identity', 'indicator',
+    'intrusion-set', 'malware', 'note', 'opinion', 'report', 'threat-actor', 'vulnerability', 'observed-data'
+  ];
+  const sros = ['relationship', 'sighting'];
+  const scos = [
+    'artifact', 'autonomous-system', 'directory', 'domain-name', 'email-addr',
+    'file', 'ipv4-addr', 'ipv6-addr', 'mac-addr', 'mutex', 'network-traffic',
+    'process', 'software', 'url', 'user-account', 'windows-registry-key', 'x509-certificate'
+  ];
+
+  if (sdos.includes(type)) return 'sdo';
+  if (sros.includes(type)) return 'sro';
+  if (scos.includes(type)) return 'sco';
+  return 'meta';
 }

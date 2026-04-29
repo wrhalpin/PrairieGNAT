@@ -131,6 +131,20 @@
     >
       🧪 Load Test Bundle
     </button>
+
+    <button
+      on:click={() => dispatch('navigate', { route: 'paste' })}
+      class="w-full py-3 px-4 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+    >
+      📋 Paste JSON
+    </button>
+
+    <button
+      on:click={() => dispatch('navigate', { route: 'url' })}
+      class="w-full py-3 px-4 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+    >
+      🔗 Load from URL
+    </button>
   </div>
 
   {#if bundles.length === 0}

@@ -5,8 +5,10 @@
   import ObjectDetail from '$lib/pages/ObjectDetail.svelte';
   import SearchPage from '$lib/pages/SearchPage.svelte';
   import SettingsPage from '$lib/pages/SettingsPage.svelte';
+  import PasteJsonPage from '$lib/pages/PasteJsonPage.svelte';
+  import UrlFetchPage from '$lib/pages/UrlFetchPage.svelte';
 
-  type Route = 'library' | 'search' | 'settings' | 'bundle' | 'object';
+  type Route = 'library' | 'search' | 'settings' | 'bundle' | 'object' | 'paste' | 'url';
 
   let currentRoute: Route = 'library';
   let routeParams: Record<string, string> = {};
@@ -57,6 +59,10 @@
       <SearchPage />
     {:else if currentRoute === 'settings'}
       <SettingsPage />
+    {:else if currentRoute === 'paste'}
+      <PasteJsonPage on:navigate={(e) => navigate(e.detail.route, e.detail.params)} />
+    {:else if currentRoute === 'url'}
+      <UrlFetchPage on:navigate={(e) => navigate(e.detail.route, e.detail.params)} />
     {:else if currentRoute === 'bundle'}
       <BundleDetail bundleId={routeParams.bundleId} on:navigate={(e) => navigate(e.detail.route, e.detail.params)} />
     {:else if currentRoute === 'object'}
