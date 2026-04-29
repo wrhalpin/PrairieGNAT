@@ -5,17 +5,22 @@ export default defineConfig({
   plugins: [svelte()],
   server: {
     port: 5173,
-    open: true,
+  },
+  resolve: {
+    alias: {
+      $lib: '/src/lib',
+    },
   },
   build: {
     target: 'esnext',
     minify: 'terser',
+    reportCompressedSize: true,
     rollupOptions: {
       output: {
         manualChunks: {
-          stix: ['src/lib/stix/index.ts'],
-          storage: ['src/lib/storage/index.ts'],
-          taxii: ['src/lib/taxii/index.ts'],
+          stix: ['src/lib/stix/parser.ts', 'src/lib/stix/types.ts'],
+          storage: ['src/lib/storage/db.ts'],
+          taxii: ['src/lib/taxii/client.ts'],
         },
       },
     },
