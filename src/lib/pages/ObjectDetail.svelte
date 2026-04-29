@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
   import { loadBundleAsync } from '$lib/storage/db';
-  import { parseBundle, getObjectIcon } from '$lib/stix/parser';
+  import { parseBundle, getObjectIcon, getObjectName } from '$lib/stix/parser';
+  import { getObjectFields, getTypeBgColor } from '$lib/stix/renderers';
   import type { StixObject } from '$lib/stix/types';
 
   export let bundleId: string;
@@ -109,7 +110,36 @@
       </div>
     {/if}
 
-    {#if obj.type === 'indicator'}
+    <!-- Object-specific fields -->
+    {#each getObjectFields(obj) as field}
+      <div class="mb-3 p-3 rounded-lg bg-slate-100 dark:bg-slate-800">
+        <p class="text-xs font-semibold mb-1">{field.label}:</p>
+        {#if field.type === 'code'}
+          <p class="text-xs font-mono bg-slate-900 dark:bg-slate-700 text-green-400 p-2 rounded overflow-auto">
+            {field.value}
+          </p>
+        {:else if field.type === 'chip'}
+          <div class="flex flex-wrap gap-1">
+            {#each Array.isArray(field.value) ? field.value : [field.value] as item}
+              <span class="px-2 py-1 rounded-full text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                {item}
+              </span>
+            {/each}
+          </div>
+        {:else if field.type === 'list'}
+          <ul class="text-sm space-y-1">
+            {#each Array.isArray(field.value) ? field.value : [field.value] as item}
+              <li>• {item}</li>
+            {/each}
+          </ul>
+        {:else}
+          <p class="text-sm">{field.value}</p>
+        {/if}
+      </div>
+    {/each}
+
+    <!-- Fallback for indicator if no fields found -->
+    {#if obj.type === 'indicator' && getObjectFields(obj).length === 0}
       <div class="space-y-3 mb-4">
         {#if obj['pattern']}
           <div class="p-3 rounded-lg bg-slate-100 dark:bg-slate-800">
