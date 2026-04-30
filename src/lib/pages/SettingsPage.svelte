@@ -1,36 +1,82 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { loadSettingsAsync, saveSettingsAsync, clearAllAsync } from '$lib/storage/db';
+  import { TAXIIClient } from '$lib/taxii/client';
 
   let mode: 'standalone' | 'gnat' = 'standalone';
   let gnatUrl = '';
   let gnatApiKey = '';
   let showApiKey = false;
+  let testingConnection = false;
+  let testMessage = '';
+  let testError = false;
+  let saveLoading = false;
 
   onMount(async () => {
     try {
       const settings = await loadSettingsAsync();
       mode = settings.mode;
       gnatUrl = settings.gnatInstanceUrl || '';
+      // API key is not loaded from settings to keep it secure
     } catch (e) {
       console.error('Failed to load settings:', e);
     }
   });
 
+  async function handleTestConnection() {
+    if (!gnatUrl.trim() || !gnatApiKey.trim()) {
+      testError = true;
+      testMessage = 'Please enter both URL and API key';
+      return;
+    }
+
+    testingConnection = true;
+    testError = false;
+    testMessage = 'Testing connection...';
+
+    try {
+      const client = new TAXIIClient(gnatUrl, gnatApiKey);
+      const discovery = await client.getDiscovery();
+
+      if (discovery) {
+        testError = false;
+        testMessage = '✓ Connection successful!';
+      } else {
+        testError = true;
+        testMessage = 'Connection failed: invalid response';
+      }
+    } catch (e) {
+      testError = true;
+      testMessage = `Error: ${e instanceof Error ? e.message : String(e)}`;
+    } finally {
+      testingConnection = false;
+    }
+  }
+
   async function handleSaveSettings() {
+    if (mode === 'gnat' && (!gnatUrl.trim() || !gnatApiKey.trim())) {
+      alert('Please enter GNAT URL and API key');
+      return;
+    }
+
+    saveLoading = true;
     try {
       await saveSettingsAsync({
         mode,
         gnatInstanceUrl: gnatUrl,
+        gnatApiKey: mode === 'gnat' ? gnatApiKey : undefined,
       });
-      alert('Settings saved');
+      testMessage = '';
+      alert('Settings saved successfully');
     } catch (e) {
       alert(`Error: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      saveLoading = false;
     }
   }
 
   async function handleClearCache() {
-    if (confirm('Clear all cached bundles?')) {
+    if (confirm('Clear all cached bundles and feed?')) {
       try {
         await clearAllAsync();
         alert('Cache cleared. Reload the app.');
@@ -101,12 +147,28 @@
           </div>
         </div>
 
-        <button
-          on:click={handleSaveSettings}
-          class="w-full py-2 px-4 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-semibold"
-        >
-          Save Settings
-        </button>
+        {#if testMessage}
+          <div class={`p-3 rounded-lg text-sm ${testError ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200' : 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'}`}>
+            {testMessage}
+          </div>
+        {/if}
+
+        <div class="flex gap-2">
+          <button
+            on:click={handleTestConnection}
+            disabled={testingConnection}
+            class="flex-1 py-2 px-4 rounded-lg bg-slate-500 hover:bg-slate-600 text-white font-semibold disabled:opacity-50"
+          >
+            {testingConnection ? 'Testing...' : 'Test Connection'}
+          </button>
+          <button
+            on:click={handleSaveSettings}
+            disabled={saveLoading}
+            class="flex-1 py-2 px-4 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-semibold disabled:opacity-50"
+          >
+            {saveLoading ? 'Saving...' : 'Save Settings'}
+          </button>
+        </div>
       </div>
     {/if}
 

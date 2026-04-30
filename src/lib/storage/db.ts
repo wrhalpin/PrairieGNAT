@@ -13,8 +13,10 @@ interface BundleRecord {
 interface AppSettings {
   mode: 'standalone' | 'gnat';
   gnatInstanceUrl?: string;
+  gnatApiKey?: string;
   darkMode: 'auto' | 'light' | 'dark';
   lastSync?: number;
+  lastFeedSync?: number;
 }
 
 interface BookmarkRecord {
@@ -121,6 +123,17 @@ export async function loadSettingsAsync(): Promise<AppSettings> {
     mode: 'standalone',
     darkMode: 'auto',
   };
+}
+
+export async function getGnatConfigAsync(): Promise<{ url: string; apiKey: string } | null> {
+  const settings = await loadSettingsAsync();
+  if (settings.mode === 'gnat' && settings.gnatInstanceUrl && settings.gnatApiKey) {
+    return {
+      url: settings.gnatInstanceUrl,
+      apiKey: settings.gnatApiKey,
+    };
+  }
+  return null;
 }
 
 export async function addBookmarkAsync(
