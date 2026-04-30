@@ -1,17 +1,9 @@
 <script lang="ts">
   export let value: string;
-  export let label: string = 'Copy';
   export let defanged: string | null = null;
 
   let copied = false;
   let showDefanged = false;
-
-  function defang(text: string): string {
-    return text
-      .replace(/https?:\/\//g, 'hxxp://')
-      .replace(/(\d+)\.(\d+)\.(\d+)\.(\d+)/g, '$1.$2.$3[.]$4')
-      .replace(/\[.\]/g, '[.]');
-  }
 
   function handleCopy() {
     const textToCopy = showDefanged && defanged ? defanged : value;

@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
   import { loadBundleAsync } from '$lib/storage/db';
-  import { parseBundle, getObjectIcon, getObjectName } from '$lib/stix/parser';
-  import { getObjectFields, getTypeBgColor } from '$lib/stix/renderers';
+  import { parseBundle, getObjectIcon } from '$lib/stix/parser';
+  import { getObjectFields } from '$lib/stix/renderers';
   import BookmarkButton from '$lib/components/BookmarkButton.svelte';
   import ReadToggle from '$lib/components/ReadToggle.svelte';
   import CopyButton from '$lib/components/CopyButton.svelte';
@@ -14,7 +14,7 @@
   const dispatch = createEventDispatcher();
 
   let obj: StixObject | null = null;
-  let parsed: any = null;
+  let parsed: Record<string, unknown> | null = null;
   let relatedObjects: StixObject[] = [];
   let error: string | null = null;
 
@@ -27,18 +27,18 @@
       }
 
       parsed = parseBundle(JSON.stringify(loaded.bundle));
-      obj = parsed.objectsById.get(objectId);
+      obj = (parsed.objectsById as Map<string, StixObject>).get(objectId) ?? null;
 
       if (!obj) {
         error = 'Object not found';
         return;
       }
 
-      const relationshipIds = parsed.relationshipsBy.get(objectId) || [];
+      const relationshipIds = (parsed.relationshipsBy as Map<string, string[]>).get(objectId) || [];
       for (const relId of relationshipIds) {
-        const rel = parsed.objectsById.get(relId) as any;
+        const rel = (parsed.objectsById as Map<string, StixObject>).get(relId) as StixObject & Record<string, unknown>;
         if (rel && rel.source_ref) {
-          const sourceObj = parsed.objectsById.get(rel.source_ref);
+          const sourceObj = (parsed.objectsById as Map<string, StixObject>).get(rel.source_ref as string);
           if (sourceObj) {
             relatedObjects.push(sourceObj);
           }

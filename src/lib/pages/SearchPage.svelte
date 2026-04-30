@@ -15,8 +15,7 @@
 
   let query = '';
   let results: SearchResult[] = [];
-  let bundles: any[] = [];
-  let loading = false;
+  let bundles: Record<string, unknown>[] = [];
   let filterType: string | null = null;
   let filterBundle: string | null = null;
 
@@ -50,20 +49,21 @@
     const q = searchQuery.toLowerCase();
     const allResults: SearchResult[] = [];
 
-    bundles.forEach((bundleRecord, bundleIndex) => {
+    bundles.forEach((bundleRecord: Record<string, unknown>, bundleIndex) => {
       const parsed = parseBundle(JSON.stringify(bundleRecord.bundle));
 
-      for (const obj of parsed.objectsById.values()) {
+      for (const obj of (parsed.objectsById as Map<string, StixObject>).values()) {
         const name = getObjectName(obj).toLowerCase();
-        const desc = (obj as any).description?.toLowerCase() || '';
+        const desc = (obj as Record<string, unknown>).description?.toString().toLowerCase() || '';
         const id = obj.id.toLowerCase();
         const type = obj.type.toLowerCase();
 
         if (name.includes(q) || desc.includes(q) || id.includes(q) || type.includes(q)) {
-          const snippet = desc ? extractSnippet((obj as any).description, q) : '';
+          const description = (obj as Record<string, unknown>).description as string | undefined;
+          const snippet = description ? extractSnippet(description, q) : '';
           allResults.push({
             obj,
-            bundleId: bundleRecord.id,
+            bundleId: (bundleRecord.id as string),
             bundleIndex,
             snippet,
           });

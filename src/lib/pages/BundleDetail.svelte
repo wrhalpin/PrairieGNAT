@@ -2,14 +2,13 @@
   import { onMount, createEventDispatcher } from 'svelte';
   import { loadBundleAsync, getReadStateAsync } from '$lib/storage/db';
   import { parseBundle, getObjectIcon, getObjectName } from '$lib/stix/parser';
-  import type { StixObject } from '$lib/stix/types';
 
   export let bundleId: string;
 
   const dispatch = createEventDispatcher();
 
-  let bundle: any = null;
-  let parsed: any = null;
+  let bundle: Record<string, unknown> | null = null;
+  let parsed: Record<string, unknown> | null = null;
   let error: string | null = null;
   let expandedTypes = new Set<string>();
   let readState = new Set<string>();

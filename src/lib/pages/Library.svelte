@@ -16,7 +16,6 @@
   const dispatch = createEventDispatcher();
 
   let bundles: BundleEntry[] = [];
-  let bookmarkCounts: { [bundleId: string]: number } = {};
   let filterMode: 'all' | 'bookmarked' = 'all';
   let loading = false;
   let error: string | null = null;
@@ -31,7 +30,6 @@
       for (const [bundleId, objectIds] of bookmarks) {
         counts[bundleId] = objectIds.size;
       }
-      bookmarkCounts = counts;
 
       bundles = stored
         .map((b) => ({
