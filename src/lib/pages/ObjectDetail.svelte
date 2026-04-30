@@ -3,6 +3,9 @@
   import { loadBundleAsync } from '$lib/storage/db';
   import { parseBundle, getObjectIcon, getObjectName } from '$lib/stix/parser';
   import { getObjectFields, getTypeBgColor } from '$lib/stix/renderers';
+  import BookmarkButton from '$lib/components/BookmarkButton.svelte';
+  import ReadToggle from '$lib/components/ReadToggle.svelte';
+  import CopyButton from '$lib/components/CopyButton.svelte';
   import type { StixObject } from '$lib/stix/types';
 
   export let bundleId: string;
@@ -103,6 +106,12 @@
       <p class="text-xs text-slate-600 dark:text-slate-400">{obj.id}</p>
     </div>
 
+    <!-- Action buttons -->
+    <div class="flex gap-2 mb-4">
+      <BookmarkButton {bundleId} objectId={obj.id} />
+      <ReadToggle {bundleId} objectId={obj.id} />
+    </div>
+
     {#if obj.description}
       <div class="mb-4 p-3 rounded-lg bg-slate-100 dark:bg-slate-800">
         <p class="text-sm"><strong>Description:</strong></p>
@@ -132,6 +141,8 @@
               <li>• {item}</li>
             {/each}
           </ul>
+        {:else if field.type === 'copyable'}
+          <CopyButton value={String(field.value)} defanged={field.defanged} />
         {:else}
           <p class="text-sm">{field.value}</p>
         {/if}

@@ -3,7 +3,8 @@ import type { StixObject } from './types';
 export interface RenderField {
   label: string;
   value: string | string[] | number;
-  type?: 'text' | 'list' | 'chip' | 'code';
+  type?: 'text' | 'list' | 'chip' | 'code' | 'copyable';
+  defanged?: string; // Defanged version for copyable fields
 }
 
 export function getObjectFields(obj: StixObject): RenderField[] {
@@ -113,10 +114,33 @@ export function getObjectFields(obj: StixObject): RenderField[] {
     case 'domain-name':
     case 'ipv4-addr':
     case 'ipv6-addr':
-    case 'url':
-    case 'email-addr':
-      if (data.value) fields.push({ label: 'Value', value: data.value, type: 'code' });
+      if (data.value) {
+        const defangedValue = data.value
+          .replace(/(\d+)\.(\d+)\.(\d+)\.(\d+)/g, '$1.$2.$3[.]$4');
+        fields.push({
+          label: 'Value',
+          value: data.value,
+          type: 'copyable',
+          defanged: defangedValue !== data.value ? defangedValue : undefined,
+        });
+      }
       if (data.resolves_to_refs?.length) fields.push({ label: 'Resolves To', value: data.resolves_to_refs, type: 'list' });
+      break;
+
+    case 'url':
+      if (data.value) {
+        const defangedValue = data.value.replace(/https?:\/\//g, 'hxxp://');
+        fields.push({
+          label: 'Value',
+          value: data.value,
+          type: 'copyable',
+          defanged: defangedValue !== data.value ? defangedValue : undefined,
+        });
+      }
+      break;
+
+    case 'email-addr':
+      if (data.value) fields.push({ label: 'Value', value: data.value, type: 'copyable' });
       break;
 
     case 'file':
