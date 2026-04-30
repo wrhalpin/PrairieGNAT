@@ -51,15 +51,54 @@ npm run format
 npm run lint:fix
 ```
 
-## Phases
+## Status
 
-See `EXECUTION_PLAN.md` for detailed roadmap:
+**Phase 1 MVP — COMPLETE** ✅
 
-- **Phase 0** (spike) — Validate stack, STIX parser MVP, device testing
-- **Phase 1** (MVP) — Full STIX 2.1 reader, offline support
-- **Phase 2** (polish) — Bookmarks, search, defanging, share target
-- **Phase 3** (GNAT mode) — Auth, dissemination feed, deep links
-- **Phase 4** (release) — v1.0 documentation, release
+### Phase Completion
+- ✅ **Phase 0** — Spike complete, stack validated
+- ✅ **Phase 1** — MVP complete, all core features implemented
+- ⏳ **Phase 2** — Planned (bookmarks, defanging, share target)
+- ⏳ **Phase 3** — Planned (GNAT mode)
+- ⏳ **Phase 4** — Planned (v1.0 release)
+
+## Phase 1 Features
+
+✅ **STIX 2.1 Support**
+- Parse all 18 SDOs, SROs, and common SCOs
+- Type-specific rendering for each object class
+- Relationship resolution and navigation
+
+✅ **Data Input Methods**
+- Load bundles from file (drag-drop, file picker)
+- Paste raw JSON with validation
+- Fetch from HTTP URL or TAXII 2.1 endpoints
+- Test bundle included
+
+✅ **Search & Filtering**
+- Within-bundle search (name, description, ID, type)
+- Cross-bundle search across all loaded bundles
+- Real-time results with up to 50 matches
+
+✅ **Offline Capability**
+- Service worker with intelligent caching
+- App shell caching for instant load
+- API response caching (network-first with fallback)
+- Fully functional without network after first load
+
+✅ **UI/UX**
+- Dark mode with system preference detection
+- Mobile-first responsive design (Tailwind CSS)
+- Touch targets ≥44pt (iOS HIG)
+- Related objects navigation
+- Bundle management (list, cache, delete)
+
+✅ **Developer Experience**
+- TypeScript strict mode
+- ESLint + Prettier
+- Vitest ready for unit tests
+- GitHub Actions CI/CD
+- <16KB gzip bundle size
 
 ## Project Structure
 
