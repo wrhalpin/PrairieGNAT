@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
-  import { loadBundlesAsync, saveBundleAsync } from '$lib/storage/db';
+  import { loadBundlesAsync, saveBundleAsync, getBookmarksAsync } from '$lib/storage/db';
   import { parseBundle } from '$lib/stix/parser';
   import type { Bundle } from '$lib/stix/types';
 
@@ -10,28 +10,50 @@
     objectCount: number;
     openedAt: number;
     source: 'file' | 'paste' | 'url' | 'taxii';
+    bookmarkCount: number;
   }
 
   const dispatch = createEventDispatcher();
 
   let bundles: BundleEntry[] = [];
+  let bookmarkCounts: { [bundleId: string]: number } = {};
+  let filterMode: 'all' | 'bookmarked' = 'all';
   let loading = false;
   let error: string | null = null;
 
   onMount(async () => {
     try {
       const stored = await loadBundlesAsync();
-      bundles = stored.map((b) => ({
-        id: b.id,
-        name: b.name,
-        objectCount: b.bundle.objects?.length || 0,
-        openedAt: b.openedAt,
-        source: b.source,
-      }));
+      const bookmarks = await getBookmarksAsync();
+
+      // Count bookmarks per bundle
+      const counts: { [bundleId: string]: number } = {};
+      for (const [bundleId, objectIds] of bookmarks) {
+        counts[bundleId] = objectIds.size;
+      }
+      bookmarkCounts = counts;
+
+      bundles = stored
+        .map((b) => ({
+          id: b.id,
+          name: b.name,
+          objectCount: b.bundle.objects?.length || 0,
+          openedAt: b.openedAt,
+          source: b.source,
+          bookmarkCount: counts[b.id] || 0,
+        }))
+        .sort((a, b) => b.openedAt - a.openedAt);
     } catch (e) {
       console.error('Failed to load bundles:', e);
     }
   });
+
+  function getFilteredBundles() {
+    if (filterMode === 'bookmarked') {
+      return bundles.filter((b) => b.bookmarkCount > 0);
+    }
+    return bundles;
+  }
 
   async function handleFileOpen(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -53,6 +75,7 @@
         objectCount: bundleData.objects?.length || 0,
         openedAt: Date.now(),
         source: 'file',
+        bookmarkCount: 0,
       };
       bundles = [newBundle, ...bundles];
 
@@ -81,6 +104,7 @@
         objectCount: bundleData.objects?.length || 0,
         openedAt: Date.now(),
         source: 'file',
+        bookmarkCount: 0,
       };
       bundles = [newBundle, ...bundles];
     } catch (e) {
@@ -152,21 +176,57 @@
       No bundles loaded yet. Try loading the test bundle above.
     </p>
   {:else}
-    <div class="space-y-2">
-      {#each bundles as bundle (bundle.id)}
-        <button
-          on:click={() => openBundle(bundle.id)}
-          class="w-full p-4 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition text-left"
-        >
-          <div class="flex justify-between items-start">
-            <div class="flex-1">
-              <p class="font-semibold">{bundle.name}</p>
-              <p class="text-sm text-slate-600 dark:text-slate-400">{bundle.objectCount} objects</p>
-            </div>
-            <p class="text-xs text-slate-500 dark:text-slate-500">{new Date(bundle.openedAt).toLocaleDateString()}</p>
-          </div>
-        </button>
-      {/each}
+    <div class="mb-4 flex gap-2">
+      <button
+        on:click={() => (filterMode = 'all')}
+        class={`px-3 py-2 rounded text-sm font-semibold transition ${
+          filterMode === 'all'
+            ? 'bg-blue-500 text-white'
+            : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600'
+        }`}
+      >
+        All ({bundles.length})
+      </button>
+      <button
+        on:click={() => (filterMode = 'bookmarked')}
+        class={`px-3 py-2 rounded text-sm font-semibold transition ${
+          filterMode === 'bookmarked'
+            ? 'bg-blue-500 text-white'
+            : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600'
+        }`}
+      >
+        ⭐ Bookmarked ({bundles.filter((b) => b.bookmarkCount > 0).length})
+      </button>
     </div>
+
+    {#if getFilteredBundles().length === 0}
+      <p class="text-center text-slate-500 dark:text-slate-400 py-8">
+        {filterMode === 'bookmarked' ? 'No bookmarked items yet.' : 'No bundles found.'}
+      </p>
+    {:else}
+      <div class="space-y-2">
+        {#each getFilteredBundles() as bundle (bundle.id)}
+          <button
+            on:click={() => openBundle(bundle.id)}
+            class="w-full p-4 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition text-left"
+          >
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <p class="font-semibold">{bundle.name}</p>
+                  {#if bundle.bookmarkCount > 0}
+                    <span class="px-2 py-0.5 rounded-full text-xs bg-yellow-200 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
+                      ⭐ {bundle.bookmarkCount}
+                    </span>
+                  {/if}
+                </div>
+                <p class="text-sm text-slate-600 dark:text-slate-400">{bundle.objectCount} objects</p>
+              </div>
+              <p class="text-xs text-slate-500 dark:text-slate-500">{new Date(bundle.openedAt).toLocaleDateString()}</p>
+            </div>
+          </button>
+        {/each}
+      </div>
+    {/if}
   {/if}
 </div>
