@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
-  import { loadBundleAsync } from '$lib/storage/db';
+  import { loadBundleAsync, loadSettingsAsync } from '$lib/storage/db';
   import { parseBundle, getObjectIcon } from '$lib/stix/parser';
   import { getObjectFields } from '$lib/stix/renderers';
   import BookmarkButton from '$lib/components/BookmarkButton.svelte';
@@ -13,6 +13,8 @@
 
   const dispatch = createEventDispatcher();
 
+  let gnatInstanceUrl: string | null = null;
+
   let obj: StixObject | null = null;
   let parsed: Record<string, unknown> | null = null;
   let relatedObjects: StixObject[] = [];
@@ -20,6 +22,11 @@
 
   onMount(async () => {
     try {
+      const settings = await loadSettingsAsync();
+      if (settings.mode === 'gnat' && settings.gnatInstanceUrl) {
+        gnatInstanceUrl = settings.gnatInstanceUrl;
+      }
+
       const loaded = await loadBundleAsync(bundleId);
       if (!loaded) {
         error = 'Bundle not found';
@@ -48,6 +55,12 @@
       error = `Error loading object: ${e instanceof Error ? e.message : String(e)}`;
     }
   });
+
+  function openInGnat() {
+    if (!gnatInstanceUrl || !obj) return;
+    const deepLink = `${gnatInstanceUrl}/objects/${objectId}`;
+    window.open(deepLink, '_blank');
+  }
 
   function getTLPLabel(markingIds: string[] | undefined): string {
     if (!markingIds || markingIds.length === 0) return 'CLEAR';
@@ -110,6 +123,15 @@
     <div class="flex gap-2 mb-4">
       <BookmarkButton {bundleId} objectId={obj.id} />
       <ReadToggle {bundleId} objectId={obj.id} />
+      {#if gnatInstanceUrl}
+        <button
+          on:click={openInGnat}
+          class="px-3 py-1 rounded text-sm bg-purple-500 hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+          title="View in GNAT"
+        >
+          🔗 GNAT
+        </button>
+      {/if}
     </div>
 
     {#if obj.description}
