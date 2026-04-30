@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
-  import { loadBundleAsync } from '$lib/storage/db';
+  import { loadBundleAsync, getReadStateAsync } from '$lib/storage/db';
   import { parseBundle, getObjectIcon, getObjectName } from '$lib/stix/parser';
   import type { StixObject } from '$lib/stix/types';
 
@@ -12,6 +12,7 @@
   let parsed: any = null;
   let error: string | null = null;
   let expandedTypes = new Set<string>();
+  let readState = new Set<string>();
 
   onMount(async () => {
     try {
@@ -24,6 +25,7 @@
 
       bundle = loaded;
       parsed = parseBundle(JSON.stringify(loaded.bundle));
+      readState = await getReadStateAsync(bundleId);
     } catch (e) {
       error = `Error loading bundle: ${e instanceof Error ? e.message : String(e)}`;
     }
@@ -94,10 +96,21 @@
             {#each typeGroup.objects as obj (obj.id)}
               <button
                 on:click={() => openObject(obj.id)}
-                class="w-full p-2 rounded bg-slate-50 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 transition text-sm border-l-2 border-slate-300 dark:border-slate-700 hover:border-blue-500 text-left"
+                class="w-full p-2 rounded bg-slate-50 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 transition text-sm border-l-2 border-slate-300 dark:border-slate-700 hover:border-blue-500 text-left flex items-center justify-between"
               >
-                <p class="font-medium">{getObjectName(obj)}</p>
-                <p class="text-xs text-slate-500 dark:text-slate-400">{obj.id}</p>
+                <div class="flex-1">
+                  <p class="font-medium">{getObjectName(obj)}</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">{obj.id}</p>
+                </div>
+                <span
+                  class={`ml-2 text-xs font-semibold ${
+                    readState.has(obj.id)
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-slate-400 dark:text-slate-600'
+                  }`}
+                >
+                  {readState.has(obj.id) ? '✓' : '○'}
+                </span>
               </button>
             {/each}
           </div>
