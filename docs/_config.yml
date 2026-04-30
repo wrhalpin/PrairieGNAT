@@ -1,0 +1,21 @@
+# GitHub Pages configuration for PrairieGNAT
+
+# Site settings
+title: PrairieGNAT
+description: Lightweight STIX 2.1 reader — triage and FSA on the go
+url: "https://prairiegnat.pages.dev"
+baseurl: ""
+
+# Build settings
+markdown: kramdown
+theme: null
+plugins: []
+
+# Custom settings
+exclude:
+  - node_modules
+  - .git
+  - .gitignore
+
+# Enable syntax highlighting
+highlighter: rouge
