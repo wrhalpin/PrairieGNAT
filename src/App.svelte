@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { saveBundleAsync } from '$lib/storage/db';
+  import { saveBundleAsync, loadSettingsAsync } from '$lib/storage/db';
   import { parseBundle } from '$lib/stix/parser';
   import Library from '$lib/pages/Library.svelte';
   import BundleDetail from '$lib/pages/BundleDetail.svelte';
@@ -9,12 +9,14 @@
   import SettingsPage from '$lib/pages/SettingsPage.svelte';
   import PasteJsonPage from '$lib/pages/PasteJsonPage.svelte';
   import UrlFetchPage from '$lib/pages/UrlFetchPage.svelte';
+  import FeedPage from '$lib/pages/FeedPage.svelte';
 
-  type Route = 'library' | 'search' | 'settings' | 'bundle' | 'object' | 'paste' | 'url';
+  type Route = 'library' | 'search' | 'settings' | 'bundle' | 'object' | 'paste' | 'url' | 'feed';
 
   let currentRoute: Route = 'library';
   let routeParams: Record<string, string> = {};
   let isDarkMode = false;
+  let gnatMode = false;
 
   function toggleDarkMode() {
     isDarkMode = !isDarkMode;
@@ -40,7 +42,7 @@
     }
   }
 
-  onMount(() => {
+  onMount(async () => {
     const savedDarkMode = localStorage.getItem('darkMode');
     if (savedDarkMode === 'true') {
       isDarkMode = true;
@@ -66,6 +68,14 @@
     if (params.get('shared') === '1') {
       window.history.replaceState(null, '', '/');
     }
+
+    // Load settings to check mode
+    try {
+      const settings = await loadSettingsAsync();
+      gnatMode = settings.mode === 'gnat';
+    } catch (e) {
+      console.error('Failed to load settings:', e);
+    }
   });
 </script>
 
@@ -86,6 +96,8 @@
       <SearchPage />
     {:else if currentRoute === 'settings'}
       <SettingsPage />
+    {:else if currentRoute === 'feed' && gnatMode}
+      <FeedPage on:navigate={(e) => navigate(e.detail.route, e.detail.params)} />
     {:else if currentRoute === 'paste'}
       <PasteJsonPage on:navigate={(e) => navigate(e.detail.route, e.detail.params)} />
     {:else if currentRoute === 'url'}
@@ -100,25 +112,33 @@
   <nav class="fixed bottom-0 left-0 right-0 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 flex gap-1 px-2 py-2">
     <button
       on:click={() => navigate('library')}
-      class={`flex-1 py-2 px-3 text-center rounded transition ${currentRoute === 'library' ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+      class={`flex-1 py-2 px-3 text-center rounded transition text-sm ${currentRoute === 'library' ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`}
     >
       📚 Library
     </button>
+    {#if gnatMode}
+      <button
+        on:click={() => navigate('feed')}
+        class={`flex-1 py-2 px-3 text-center rounded transition text-sm ${currentRoute === 'feed' ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+      >
+        📡 Feed
+      </button>
+    {/if}
     <button
       on:click={() => navigate('search')}
-      class={`flex-1 py-2 px-3 text-center rounded transition ${currentRoute === 'search' ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+      class={`flex-1 py-2 px-3 text-center rounded transition text-sm ${currentRoute === 'search' ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`}
     >
       🔍 Search
     </button>
     <button
       on:click={() => navigate('settings')}
-      class={`flex-1 py-2 px-3 text-center rounded transition ${currentRoute === 'settings' ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+      class={`flex-1 py-2 px-3 text-center rounded transition text-sm ${currentRoute === 'settings' ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`}
     >
       ⚙️ Settings
     </button>
     <button
       on:click={toggleDarkMode}
-      class="px-3 py-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+      class="px-3 py-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition text-sm"
       aria-label="Toggle dark mode"
     >
       {isDarkMode ? '☀️' : '🌙'}
