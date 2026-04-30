@@ -94,9 +94,47 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Handle fetch errors with offline page
+// Handle share target POST requests
 self.addEventListener('fetch', (event) => {
-  if (event.request.method === 'GET') {
+  // Handle share target POST requests to root
+  if (event.request.method === 'POST' && event.request.url.endsWith('/')) {
+    event.respondWith(
+      (async () => {
+        try {
+          const formData = await event.request.formData();
+          const file = formData.get('bundle');
+
+          if (file instanceof File) {
+            const fileContent = await file.text();
+
+            // Send message to all clients to process the shared file
+            const clients = await self.clients.matchAll();
+            for (const client of clients) {
+              client.postMessage({
+                type: 'SHARE_TARGET',
+                fileName: file.name,
+                fileContent: fileContent,
+              });
+            }
+
+            // Return redirect to app
+            return new Response(null, {
+              status: 303,
+              headers: { 'Location': '/?shared=1' },
+            });
+          }
+        } catch (error) {
+          console.error('Share target error:', error);
+        }
+
+        // Fallback: return to app
+        return new Response(null, {
+          status: 303,
+          headers: { 'Location': '/' },
+        });
+      })()
+    );
+  } else if (event.request.method === 'GET') {
     event.respondWith(
       fetch(event.request).catch(() => {
         // Return offline page or cached response

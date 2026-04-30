@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { saveBundleAsync } from '$lib/storage/db';
+  import { parseBundle } from '$lib/stix/parser';
   import Library from '$lib/pages/Library.svelte';
   import BundleDetail from '$lib/pages/BundleDetail.svelte';
   import ObjectDetail from '$lib/pages/ObjectDetail.svelte';
@@ -26,6 +28,18 @@
     window.scrollTo(0, 0);
   }
 
+  async function handleSharedFile(fileName: string, fileContent: string) {
+    try {
+      const bundleData = JSON.parse(fileContent);
+      parseBundle(fileContent);
+      await saveBundleAsync(bundleData.id, fileName, bundleData, 'share');
+      navigate('bundle', { bundleId: bundleData.id });
+    } catch (e) {
+      console.error('Error processing shared file:', e);
+      alert(`Error loading shared file: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+
   onMount(() => {
     const savedDarkMode = localStorage.getItem('darkMode');
     if (savedDarkMode === 'true') {
@@ -36,8 +50,21 @@
       document.documentElement.classList.add('dark');
     }
 
-    if ('serviceWorker' in navigator && import.meta.env.PROD) {
+    if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(console.error);
+
+      // Listen for messages from service worker (share target)
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data.type === 'SHARE_TARGET') {
+          handleSharedFile(event.data.fileName, event.data.fileContent);
+        }
+      });
+    }
+
+    // Check if app was launched as share target
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('shared') === '1') {
+      window.history.replaceState(null, '', '/');
     }
   });
 </script>

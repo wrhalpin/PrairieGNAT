@@ -9,7 +9,7 @@
     name: string;
     objectCount: number;
     openedAt: number;
-    source: 'file' | 'paste' | 'url' | 'taxii';
+    source: 'file' | 'paste' | 'url' | 'taxii' | 'share';
     bookmarkCount: number;
   }
 

@@ -6,7 +6,7 @@ interface BundleRecord {
   name: string;
   bundle: Bundle;
   openedAt: number;
-  source: 'file' | 'paste' | 'url' | 'taxii';
+  source: 'file' | 'paste' | 'url' | 'taxii' | 'share';
   sourceUrl?: string;
 }
 
@@ -66,7 +66,7 @@ export async function saveBundleAsync(
   id: string,
   name: string,
   bundle: Bundle,
-  source: 'file' | 'paste' | 'url' | 'taxii',
+  source: 'file' | 'paste' | 'url' | 'taxii' | 'share',
   sourceUrl?: string,
 ): Promise<void> {
   const idb = await getDb();
