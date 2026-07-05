@@ -11,10 +11,15 @@ export interface ParsedBundle {
 export function parseBundle(jsonString: string): ParsedBundle {
   const data = JSON.parse(jsonString);
 
-  if (!data.type || data.type !== 'bundle') {
+  if (!data || typeof data !== 'object' || data.type !== 'bundle') {
     throw new Error('Invalid STIX bundle: missing or incorrect type');
   }
 
+  // The STIX 2.1 spec makes `objects` optional on a bundle; treat a missing
+  // list as empty rather than rejecting the bundle.
+  if (data.objects === undefined) {
+    data.objects = [];
+  }
   if (!Array.isArray(data.objects)) {
     throw new Error('Invalid STIX bundle: objects must be an array');
   }
@@ -26,8 +31,9 @@ export function parseBundle(jsonString: string): ParsedBundle {
   const markingsById = new Map<string, any>();
 
   for (const obj of bundle.objects) {
-    if (!obj.id) {
-      console.warn('Skipping STIX object without id', obj);
+    // A single malformed entry (null, non-object, missing id/type) must not
+    // make the whole bundle unloadable — skip it.
+    if (!obj || typeof obj !== 'object' || !obj.id || !obj.type) {
       continue;
     }
 

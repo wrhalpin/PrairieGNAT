@@ -103,7 +103,7 @@
     {:else if currentRoute === 'search'}
       <SearchPage />
     {:else if currentRoute === 'settings'}
-      <SettingsPage />
+      <SettingsPage on:modechange={(e) => (gnatMode = e.detail.gnat)} />
     {:else if currentRoute === 'feed' && gnatMode}
       <FeedPage on:navigate={(e) => navigate(e.detail.route, e.detail.params)} />
     {:else if currentRoute === 'paste'}

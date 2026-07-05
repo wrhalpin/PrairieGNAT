@@ -23,27 +23,11 @@
       error = null;
       loading = true;
 
-      let bundleData: Bundle;
-
-      // Try TAXII if URL looks like a TAXII endpoint
-      if (url.includes('/taxii/') || url.includes('/collections/')) {
-        const client = new TAXIIClient(url.split('/taxii/')[0], apiKey);
-        bundleData = await client.fetchBundleFromUrl(url);
-      } else {
-        // Fetch directly as JSON
-        const response = await fetch(url, {
-          headers: {
-            'Content-Type': 'application/stix+json',
-            ...(apiKey && { 'X-Api-Key': apiKey }),
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        bundleData = await response.json();
-      }
+      // One path for plain JSON URLs and TAXII endpoints: the client
+      // enforces HTTPS, scopes the API key to this URL's origin, and
+      // normalizes TAXII envelopes into bundles.
+      const client = new TAXIIClient(new URL(url).origin, apiKey || undefined);
+      const bundleData: Bundle = await client.fetchBundleFromUrl(url);
 
       // Validate
       parseBundle(JSON.stringify(bundleData));
@@ -57,7 +41,7 @@
         url
       );
 
-      dispatch('navigate', { route: 'library' });
+      dispatch('navigate', { route: 'bundle', params: { bundleId: bundleData.id } });
     } catch (e) {
       error = `Failed to fetch: ${e instanceof Error ? e.message : String(e)}`;
       console.error(error, e);

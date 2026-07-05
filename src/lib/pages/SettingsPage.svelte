@@ -1,30 +1,47 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, createEventDispatcher } from 'svelte';
   import { loadSettingsAsync, saveSettingsAsync, clearAllAsync } from '$lib/storage/db';
   import { TAXIIClient } from '$lib/taxii/client';
+
+  const dispatch = createEventDispatcher();
 
   let mode: 'standalone' | 'gnat' = 'standalone';
   let gnatUrl = '';
   let gnatApiKey = '';
+  let hasStoredKey = false;
   let showApiKey = false;
   let testingConnection = false;
   let testMessage = '';
   let testError = false;
   let saveLoading = false;
+  let saveMessage = '';
+  let saveError = false;
 
   onMount(async () => {
     try {
       const settings = await loadSettingsAsync();
       mode = settings.mode;
       gnatUrl = settings.gnatInstanceUrl || '';
-      // API key is not loaded from settings to keep it secure
+      // The key itself is never shown in the UI; we only track that one exists
+      // so saves and tests don't force re-entry.
+      hasStoredKey = !!settings.gnatApiKey;
     } catch (e) {
       console.error('Failed to load settings:', e);
     }
   });
 
+  async function resolveApiKey(): Promise<string> {
+    if (gnatApiKey.trim()) return gnatApiKey.trim();
+    if (hasStoredKey) {
+      const settings = await loadSettingsAsync();
+      return settings.gnatApiKey || '';
+    }
+    return '';
+  }
+
   async function handleTestConnection() {
-    if (!gnatUrl.trim() || !gnatApiKey.trim()) {
+    const key = await resolveApiKey();
+    if (!gnatUrl.trim() || !key) {
       testError = true;
       testMessage = 'Please enter both URL and API key';
       return;
@@ -35,16 +52,10 @@
     testMessage = 'Testing connection...';
 
     try {
-      const client = new TAXIIClient(gnatUrl, gnatApiKey);
-      const discovery = await client.getDiscovery();
-
-      if (discovery) {
-        testError = false;
-        testMessage = '✓ Connection successful!';
-      } else {
-        testError = true;
-        testMessage = 'Connection failed: invalid response';
-      }
+      const client = new TAXIIClient(gnatUrl, key);
+      await client.getDiscovery();
+      testError = false;
+      testMessage = '✓ Connection successful!';
     } catch (e) {
       testError = true;
       testMessage = `Error: ${e instanceof Error ? e.message : String(e)}`;
@@ -54,22 +65,42 @@
   }
 
   async function handleSaveSettings() {
-    if (mode === 'gnat' && (!gnatUrl.trim() || !gnatApiKey.trim())) {
-      alert('Please enter GNAT URL and API key');
-      return;
+    saveMessage = '';
+    saveError = false;
+
+    if (mode === 'gnat') {
+      if (!gnatUrl.trim()) {
+        saveError = true;
+        saveMessage = 'Please enter the GNAT instance URL';
+        return;
+      }
+      if (!gnatApiKey.trim() && !hasStoredKey) {
+        saveError = true;
+        saveMessage = 'Please enter an API key';
+        return;
+      }
     }
 
     saveLoading = true;
     try {
-      await saveSettingsAsync({
-        mode,
-        gnatInstanceUrl: gnatUrl,
-        gnatApiKey: mode === 'gnat' ? gnatApiKey : undefined,
-      });
+      // Only overwrite the stored key when a new one was typed; a blank field
+      // means "keep the existing key". Switching to standalone keeps the key
+      // stored so switching back doesn't require re-entry.
+      const update: Record<string, unknown> = { mode, gnatInstanceUrl: gnatUrl };
+      if (gnatApiKey.trim()) {
+        update.gnatApiKey = gnatApiKey.trim();
+      }
+      await saveSettingsAsync(update);
+      if (gnatApiKey.trim()) {
+        hasStoredKey = true;
+        gnatApiKey = '';
+      }
       testMessage = '';
-      alert('Settings saved successfully');
+      saveMessage = '✓ Settings saved';
+      dispatch('modechange', { gnat: mode === 'gnat' });
     } catch (e) {
-      alert(`Error: ${e instanceof Error ? e.message : String(e)}`);
+      saveError = true;
+      saveMessage = `Error: ${e instanceof Error ? e.message : String(e)}`;
     } finally {
       saveLoading = false;
     }
@@ -79,9 +110,11 @@
     if (confirm('Clear all cached bundles and feed?')) {
       try {
         await clearAllAsync();
-        alert('Cache cleared. Reload the app.');
+        saveError = false;
+        saveMessage = '✓ All cached bundles and feed data cleared';
       } catch (e) {
-        alert(`Error: ${e instanceof Error ? e.message : String(e)}`);
+        saveError = true;
+        saveMessage = `Error: ${e instanceof Error ? e.message : String(e)}`;
       }
     }
   }
@@ -134,7 +167,7 @@
                 id="api-key"
                 type="password"
                 bind:value={gnatApiKey}
-                placeholder="sk-..."
+                placeholder={hasStoredKey ? '•••••••• (saved — leave blank to keep)' : 'sk-...'}
                 class="flex-1 px-3 py-2 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
               />
             {/if}
@@ -153,24 +186,31 @@
           </div>
         {/if}
 
-        <div class="flex gap-2">
-          <button
-            on:click={handleTestConnection}
-            disabled={testingConnection}
-            class="flex-1 py-2 px-4 rounded-lg bg-slate-500 hover:bg-slate-600 text-white font-semibold disabled:opacity-50"
-          >
-            {testingConnection ? 'Testing...' : 'Test Connection'}
-          </button>
-          <button
-            on:click={handleSaveSettings}
-            disabled={saveLoading}
-            class="flex-1 py-2 px-4 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-semibold disabled:opacity-50"
-          >
-            {saveLoading ? 'Saving...' : 'Save Settings'}
-          </button>
-        </div>
+        <button
+          on:click={handleTestConnection}
+          disabled={testingConnection}
+          class="w-full py-2 px-4 rounded-lg bg-slate-500 hover:bg-slate-600 text-white font-semibold disabled:opacity-50"
+        >
+          {testingConnection ? 'Testing...' : 'Test Connection'}
+        </button>
       </div>
     {/if}
+
+    <!-- Save lives outside the GNAT block so switching back to standalone
+         can actually be persisted -->
+    {#if saveMessage}
+      <div class={`p-3 rounded-lg text-sm ${saveError ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200' : 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'}`}>
+        {saveMessage}
+      </div>
+    {/if}
+
+    <button
+      on:click={handleSaveSettings}
+      disabled={saveLoading}
+      class="w-full py-2 px-4 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-semibold disabled:opacity-50"
+    >
+      {saveLoading ? 'Saving...' : 'Save Settings'}
+    </button>
 
     <div>
       <h2 class="font-semibold mb-2">Cache</h2>
@@ -185,7 +225,6 @@
     <div class="text-xs text-slate-500 dark:text-slate-400 p-3 rounded-lg bg-slate-100 dark:bg-slate-800">
       <p><strong>PrairieGNAT</strong> v0.0.1</p>
       <p>Apache 2.0 License</p>
-      <p class="mt-2">Phase 0 Spike - STIX 2.1 Parser MVP</p>
     </div>
   </div>
 </div>

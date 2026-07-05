@@ -1,4 +1,5 @@
 import type { StixObject } from './types';
+import { defangValue } from './defang';
 
 export interface RenderField {
   label: string;
@@ -115,8 +116,7 @@ export function getObjectFields(obj: StixObject): RenderField[] {
     case 'ipv4-addr':
     case 'ipv6-addr':
       if (data.value) {
-        const defangedValue = data.value
-          .replace(/(\d+)\.(\d+)\.(\d+)\.(\d+)/g, '$1.$2.$3[.]$4');
+        const defangedValue = defangValue(obj.type, data.value);
         fields.push({
           label: 'Value',
           value: data.value,
@@ -128,8 +128,9 @@ export function getObjectFields(obj: StixObject): RenderField[] {
       break;
 
     case 'url':
+    case 'email-addr':
       if (data.value) {
-        const defangedValue = data.value.replace(/https?:\/\//g, 'hxxp://');
+        const defangedValue = defangValue(obj.type, data.value);
         fields.push({
           label: 'Value',
           value: data.value,
@@ -137,10 +138,6 @@ export function getObjectFields(obj: StixObject): RenderField[] {
           defanged: defangedValue !== data.value ? defangedValue : undefined,
         });
       }
-      break;
-
-    case 'email-addr':
-      if (data.value) fields.push({ label: 'Value', value: data.value, type: 'copyable' });
       break;
 
     case 'file':
