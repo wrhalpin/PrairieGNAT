@@ -12,7 +12,10 @@ export default defineConfig({
       injectRegister: false,
       manifest: false,
       injectManifest: {
-        globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}', 'test-bundle-small.json'],
+        globPatterns: [
+          '**/*.{js,css,html,svg,png,webmanifest}',
+          'test-bundle-small.json',
+        ],
       },
       devOptions: { enabled: false },
     }),

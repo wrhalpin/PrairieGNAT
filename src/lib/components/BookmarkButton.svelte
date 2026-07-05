@@ -1,17 +1,25 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { addBookmarkAsync, removeBookmarkAsync, getBookmarksAsync } from '$lib/storage/db';
+  import {
+    addBookmarkAsync,
+    removeBookmarkAsync,
+    getBookmarksAsync,
+  } from '$lib/storage/db';
 
   export let bundleId: string;
   export let objectId: string;
 
   let isBookmarked = false;
   let loading = false;
+  let interacted = false;
 
   onMount(async () => {
     try {
       const bookmarks = await getBookmarksAsync(bundleId);
-      isBookmarked = bookmarks.has(objectId);
+      // Don't clobber a toggle the user made before this read resolved
+      if (!interacted) {
+        isBookmarked = bookmarks.has(objectId);
+      }
     } catch (e) {
       console.error('Failed to load bookmark state:', e);
     }
@@ -19,6 +27,7 @@
 
   async function toggleBookmark() {
     try {
+      interacted = true;
       loading = true;
       if (isBookmarked) {
         await removeBookmarkAsync(bundleId, objectId);
@@ -44,5 +53,6 @@
       : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600'
   } disabled:opacity-50`}
 >
-  {isBookmarked ? '★' : '☆'} {isBookmarked ? 'Bookmarked' : 'Bookmark'}
+  {isBookmarked ? '★' : '☆'}
+  {isBookmarked ? 'Bookmarked' : 'Bookmark'}
 </button>

@@ -2,24 +2,27 @@
 
 **Status:** Ready for Phase 0 (Spike)  
 **Total Duration:** ~12 weeks (or 6–8 weeks full-time)  
-**Start Date:** April 30, 2026  
+**Start Date:** April 30, 2026
 
 ---
 
 ## Pre-Phase 0 Setup (This Week)
 
 ### Decision Gate 1: Governance ✅ LOCKED
+
 - [x] Separate repo (not merged with GNAT)
 - [x] Apache 2.0 license
 - [x] No open-source delay; integrate licensing from the start
 
 ### Decision Gate 2: GNAT API ✅ LOCKED
+
 - [x] TAXII 2.1 server available (fetch bundles, objects, paginated)
 - [x] REST API (`/api/reports`) for dissemination feed
 - [x] Auth via `X-Api-Key` header (simple, no refresh loop needed)
 - [x] **No blocking API gaps** — proceed to Phase 0
 
 ### Decision Gate 3: Tech Stack ✅ LOCKED
+
 - [x] Vite + Svelte + TypeScript ✅
 - [x] Tailwind CSS ✅
 - [x] Workbox (service worker) ✅
@@ -28,6 +31,7 @@
 - [x] Bundle size budget: ≤200KB gzip, fail build if exceeded
 
 ### Pre-Phase 0 Checklist
+
 - [ ] LICENSE file added (Apache 2.0)
 - [ ] CLAUDE.md created (done ✅)
 - [ ] EXECUTION_PLAN.md created (this file)
@@ -43,6 +47,7 @@
 ### Tasks
 
 #### 1. Project Setup (Day 1)
+
 - [ ] Init Vite + Svelte + TypeScript scaffold
   ```bash
   npm create vite@latest . -- --template svelte
@@ -62,6 +67,7 @@
 **Time estimate:** 2–3 hours
 
 #### 2. PWA Scaffold (Day 1–2)
+
 - [ ] Generate `public/manifest.webmanifest` (from plan §5)
 - [ ] Create PWA icons (192x192, 512x512, maskable 512x512)
 - [ ] Add Workbox service worker configuration
@@ -73,6 +79,7 @@
 **Time estimate:** 3–4 hours
 
 #### 3. STIX 2.1 Parser MVP (Day 2–3)
+
 - [ ] Create `src/lib/stix/types.ts` — TypeScript interface stubs for:
   - Indicator, ThreatActor, Malware, Campaign, Intrusion Set, Attack Pattern, Report
   - Relationship, Sighting
@@ -88,6 +95,7 @@
 **Time estimate:** 4–5 hours
 
 #### 4. TAXII 2.1 Client Proof-of-Concept (Day 3)
+
 - [ ] Create `src/lib/taxii/client.ts` — minimal TAXII 2.1 fetcher:
   - `GET /taxii/discovery` — list collections
   - `GET /taxii/collections/{id}/objects` — paginated fetch
@@ -101,6 +109,7 @@
 **Time estimate:** 2–3 hours
 
 #### 5. Minimal UI (Day 2–3)
+
 - [ ] Create single page: `src/routes/+page.svelte`
   - Input: STIX bundle (drag-drop file, paste JSON, or TAXII URL)
   - Render: list of objects grouped by type
@@ -112,6 +121,7 @@
 **Time estimate:** 2–3 hours
 
 #### 6. Device Testing (Day 4)
+
 - [ ] Build production bundle: `npm run build`
 - [ ] Deploy to Vercel or Netlify (free tier, temporary)
 - [ ] Test on real devices:
@@ -123,6 +133,7 @@
 **Time estimate:** 2–3 hours
 
 #### 7. Spike Report (Day 5)
+
 - [ ] Write summary:
   - ✅ What worked (Vite + Svelte speed, Workbox setup, STIX parser structure)
   - ⚠️ What was tricky (iOS quirks, if any)
@@ -152,12 +163,13 @@
 ### Work Streams
 
 #### 1A. STIX 2.1 ORM Expansion (Week 3, parallel with 1B)
+
 - [ ] Expand TypeScript model to cover **all 18 SDOs**:
   - Already: Indicator, ThreatActor, Malware, Campaign, Intrusion Set, Attack Pattern, Report
   - Add: Identity, Vulnerability, Course of Action, Observed Data, Bundle, Marking Definition, Note, Opinion
 - [ ] Expand **SROs**: Relationship, Sighting (custom properties support)
 - [ ] Expand **SCOs**: File, IPv4Address, IPv6Address, Domain, URL, Email, PhoneNumber, Mutex, Process, WindowsRegistryKey, X509Certificate
-- [ ] Add **custom properties** support (x_* fields)
+- [ ] Add **custom properties** support (x\_\* fields)
 - [ ] Relationship resolution: given a source ref, find all target objects
 - [ ] Unit tests: >80% coverage on parser, edge cases (malformed, missing fields, unknown object types)
 
@@ -165,6 +177,7 @@
 **Files created/modified:** `src/lib/stix/*` (types, parser, renderer hints)
 
 #### 1B. UI Framework & Navigation (Week 3, parallel with 1A)
+
 - [ ] Set up SvelteKit routing (`src/routes/`)
 - [ ] Create layout structure: bottom tab bar (Library / Search / Settings)
 - [ ] Implement 4 main screens:
@@ -179,6 +192,7 @@
 **Files created:** `src/routes/(app)/` directory with layout, pages
 
 #### 1C. File I/O & Data Entry (Week 3, overlaps 1A/1B)
+
 - [ ] **File open:** drag-drop handler, file picker
 - [ ] **Paste JSON:** modal with validation
 - [ ] **URL fetch:** modal with input (HTTP or TAXII endpoint)
@@ -189,6 +203,7 @@
 **Files created:** `src/lib/components/FileInput.svelte`, `src/lib/source/*`
 
 #### 1D. Storage & Offline (Week 4, depends on 1A/1B)
+
 - [ ] IndexedDB schema:
   - `bundles` — raw STIX JSON
   - `parsed` — parsed STIX objects (indexed by type)
@@ -207,6 +222,7 @@
 **Files created:** `src/lib/storage/*`, service worker update
 
 #### 1E. Search (Week 4, depends on 1B/1D)
+
 - [ ] In-bundle search: filter objects by name, description, type
 - [ ] UI: search input in Bundle View, real-time filtering
 - [ ] No server-side indexing; simple substring match (acceptable for <1000 objects)
@@ -215,6 +231,7 @@
 **Files created/modified:** `src/lib/components/SearchInput.svelte`, routing
 
 #### 1F. Dark Mode & Accessibility (Week 4, parallel with 1E)
+
 - [ ] Dark mode: respect system preference, manual override in Settings
 - [ ] Tailwind dark mode classes throughout
 - [ ] Accessibility audit:
@@ -229,6 +246,7 @@
 **Files modified:** all components
 
 #### 1G. Testing & QA (Week 5, ongoing)
+
 - [ ] Vitest: unit tests for STIX parser, storage layer (>80% coverage)
 - [ ] Integration tests: bundle load → index → parse → render
 - [ ] Manual testing matrix:
@@ -242,6 +260,7 @@
 **Estimated effort:** 1 week (ongoing)
 
 #### 1H. CI/CD Setup (Week 5, parallel with 1G)
+
 - [ ] GitHub Actions workflow:
   - Lint (ESLint, Prettier check)
   - Type-check (`tsc --noEmit`)
@@ -277,22 +296,18 @@
   - UI: bookmark toggle, read/unread toggle
   - Persist to IndexedDB
   - Filter library by read/unread
-  
 - [ ] **Cross-bundle search** (3 days)
   - Index all cached bundles on load
   - Full-text search modal
   - Results show: object name, snippet, bundle source
-  
 - [ ] **Defanging & copy-to-clipboard** (2 days)
   - Render URLs as `hxxp://`, IPs as `1.1.1[.]1` by default
   - Tap-to-reveal real value
   - Copy button: offer both fanged and defanged
-  
 - [ ] **Share target & file handlers** (2 days)
   - Manifest `share_target` (POST multipart JSON)
   - Manifest `file_handlers` (.json, .stix)
   - Test: share STIX from email/Files on iOS, open file on Android
-  
 - [ ] **End-user documentation** (2 days)
   - `README.md` — install instructions (web link, QR code, iOS shortcut, Android)
   - Screenshots of each main screen
@@ -322,6 +337,7 @@
 ### Tasks
 
 #### 3A. Auth & Config (2 days)
+
 - [ ] Settings screen expansion: GNAT instance URL + API key input
 - [ ] Validation: test connection before saving
 - [ ] Token stored in IndexedDB (never localStorage)
@@ -329,6 +345,7 @@
 - [ ] Feature flag: only show GNAT-specific UI in GNAT mode
 
 #### 3B. Dissemination Feed (3 days)
+
 - [ ] New "Feed" tab (GNAT mode only)
 - [ ] Poll `/api/reports` endpoint every 30 minutes (or on manual refresh)
 - [ ] List view: recent reports with title, published date, summary
@@ -336,16 +353,19 @@
 - [ ] Cache feed snapshot in IndexedDB; show "last synced" timestamp
 
 #### 3C. Deep Links & GNAT Integration (2 days)
+
 - [ ] "View in GNAT" button on Object Detail screens
 - [ ] Deep link format: `/gnat/object/{id}` → GNAT web UI
 - [ ] Workspace/multi-tenant awareness (TBD with GNAT team)
 
 #### 3D. Offline Snapshot (1 day)
+
 - [ ] Feed shows last cached snapshot when offline
 - [ ] Bundles remain fully readable offline
 - [ ] UI indicator: "offline" badge, last-sync timestamp
 
 #### 3E. FSA Workflows (TBD with analysts, 2 days)
+
 - [ ] Gather feedback from GNAT analysts on Phase 2 beta
 - [ ] Implement quick wins (e.g., bulk bookmark, quick-filter by TLP)
 - [ ] Post-v1 enhancements documented for v1.1
@@ -402,14 +422,14 @@
 
 ## Timeline Overview
 
-| Phase | Week(s) | Duration | Cumulative | Status |
-|-------|---------|----------|-----------|--------|
-| Pre-Phase 0 | — | 1 day | 1 day | Ready ✅ |
-| **Phase 0** | 1–2 | 1 week | 2 weeks | **NEXT** |
-| **Phase 1** | 3–6 | 4 weeks | 6 weeks | Starts after Phase 0 gate |
-| **Phase 2** | 7–8 | 2 weeks | 8 weeks | Starts after Phase 1 gate |
-| **Phase 3** | 9–11 | 3 weeks | 11 weeks | Starts after Phase 2 gate |
-| **Phase 4** | 12 | 1 week | 12 weeks | **SHIP v1.0** |
+| Phase       | Week(s) | Duration | Cumulative | Status                    |
+| ----------- | ------- | -------- | ---------- | ------------------------- |
+| Pre-Phase 0 | —       | 1 day    | 1 day      | Ready ✅                  |
+| **Phase 0** | 1–2     | 1 week   | 2 weeks    | **NEXT**                  |
+| **Phase 1** | 3–6     | 4 weeks  | 6 weeks    | Starts after Phase 0 gate |
+| **Phase 2** | 7–8     | 2 weeks  | 8 weeks    | Starts after Phase 1 gate |
+| **Phase 3** | 9–11    | 3 weeks  | 11 weeks   | Starts after Phase 2 gate |
+| **Phase 4** | 12      | 1 week   | 12 weeks   | **SHIP v1.0**             |
 
 **Part-time estimate:** ~12 weeks (10–15 hrs/week)  
 **Full-time estimate:** 6–8 weeks
@@ -421,6 +441,7 @@
 Each phase has an explicit gate before moving to the next:
 
 ### Gate 0→1 (After Phase 0 Spike)
+
 - ✅ PWA installs on iOS + Android
 - ✅ Bundle loads + renders offline
 - ✅ <100KB gzip
@@ -429,6 +450,7 @@ Each phase has an explicit gate before moving to the next:
 - **Approval:** Spike report filed + recommendation signed off
 
 ### Gate 1→2 (After Phase 1 MVP)
+
 - ✅ All STIX types render
 - ✅ Works offline on all device types
 - ✅ Lighthouse PWA 100, Perf/A11y ≥90
@@ -438,6 +460,7 @@ Each phase has an explicit gate before moving to the next:
 - **Approval:** CI passes, device testing matrix complete
 
 ### Gate 2→3 (After Phase 2 Polish)
+
 - ✅ Ready for internal beta
 - ✅ Documentation complete
 - ✅ All Phase 2 features working
@@ -445,12 +468,14 @@ Each phase has an explicit gate before moving to the next:
 - **Approval:** Analyst feedback collected (prefer/prefer-not)
 
 ### Gate 3→4 (After Phase 3 GNAT Mode)
+
 - ✅ GNAT analysts can triage in field
 - ✅ No regressions to standalone
 - **Owner:** Primary developer + GNAT team
 - **Approval:** Analyst feedback positive, prod-ready for GNAT instance
 
 ### Gate 4 (Release)
+
 - ✅ v1.0 documented, tagged, announced
 - ✅ Installable via web + app stores (or instructions)
 - **Owner:** Primary developer + release coordinator
@@ -460,20 +485,21 @@ Each phase has an explicit gate before moving to the next:
 
 ## Known Risks & Mitigations
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|-----------|
-| iOS storage eviction (7d inactive) | High | Medium | Phase 0 spike validates; Phase 1 includes re-fetch + friendly UX |
-| MDM policy blocks PWA | Medium | High | Capacitor wrapper as fallback; check early with org |
-| Large bundles (>50MB) slow parser | Medium | Medium | Phase 0 tests on 1000-obj bundle; Phase 2 adds virtualization if needed |
-| GNAT API gaps (unlikely given analysis) | Low | Medium | Gate 2 already validated; GNAT team on standby |
-| Scope creep (authoring/editing) | High | High | Explicitly read-only; v2 conversation only |
-| iOS Safari quirks delay launch | Medium | Medium | Phase 0 spike on real iPad; test iOS 16.4+, 17, 18 |
+| Risk                                    | Likelihood | Impact | Mitigation                                                              |
+| --------------------------------------- | ---------- | ------ | ----------------------------------------------------------------------- |
+| iOS storage eviction (7d inactive)      | High       | Medium | Phase 0 spike validates; Phase 1 includes re-fetch + friendly UX        |
+| MDM policy blocks PWA                   | Medium     | High   | Capacitor wrapper as fallback; check early with org                     |
+| Large bundles (>50MB) slow parser       | Medium     | Medium | Phase 0 tests on 1000-obj bundle; Phase 2 adds virtualization if needed |
+| GNAT API gaps (unlikely given analysis) | Low        | Medium | Gate 2 already validated; GNAT team on standby                          |
+| Scope creep (authoring/editing)         | High       | High   | Explicitly read-only; v2 conversation only                              |
+| iOS Safari quirks delay launch          | Medium     | Medium | Phase 0 spike on real iPad; test iOS 16.4+, 17, 18                      |
 
 ---
 
 ## Definition of Done
 
 A phase is done when:
+
 1. All tasks in that phase are completed
 2. Exit criteria are met
 3. No known regressions

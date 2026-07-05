@@ -1,7 +1,12 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
   import { loadBundleAsync, getReadStateAsync } from '$lib/storage/db';
-  import { parseBundle, getObjectIcon, getObjectName, getTLPColor } from '$lib/stix/parser';
+  import {
+    parseBundle,
+    getObjectIcon,
+    getObjectName,
+    getTLPColor,
+  } from '$lib/stix/parser';
 
   export let bundleId: string;
 
@@ -35,8 +40,12 @@
     if (!markingIds || markingIds.length === 0) return 'CLEAR';
 
     for (const markingId of markingIds) {
-      const marking = (parsed?.markingsById as Map<string, Record<string, unknown>>)?.get(markingId);
-      const tlp = (marking?.definition as Record<string, unknown>)?.tlp as string | undefined;
+      const marking = (
+        parsed?.markingsById as Map<string, Record<string, unknown>>
+      )?.get(markingId);
+      const tlp = (marking?.definition as Record<string, unknown>)?.tlp as
+        | string
+        | undefined;
       if (tlp) {
         return tlp.replace('tlp:', '').toUpperCase();
       }
@@ -58,24 +67,41 @@
   // Reactive declarations, not template-called functions: Svelte only
   // re-renders when variables referenced in the template change, so filters
   // computed inside plain functions never update the list.
-  $: typeCount = parsed ? (parsed.objectsByType as Map<string, unknown>).size : 0;
-  $: totalCount = parsed ? (parsed.objectsById as Map<string, unknown>).size : 0;
+  $: typeCount = parsed
+    ? (parsed.objectsByType as Map<string, unknown>).size
+    : 0;
+  $: totalCount = parsed
+    ? (parsed.objectsById as Map<string, unknown>).size
+    : 0;
 
   $: typeGroups = computeTypeGroups(parsed, tlpFilter);
   $: uniqueTLPs = computeUniqueTLPs(parsed);
 
-  function computeTypeGroups(p: Record<string, unknown> | null, filter: string | null) {
+  function computeTypeGroups(
+    p: Record<string, unknown> | null,
+    filter: string | null
+  ) {
     if (!p) return [];
 
-    const types = Array.from((p.objectsByType as Map<string, unknown>).keys()).sort();
+    const types = Array.from(
+      (p.objectsByType as Map<string, unknown>).keys()
+    ).sort();
     return types
       .filter((t) => !HIDDEN_TYPES.includes(t))
       .map((t) => {
-        const objects = ((p.objectsByType as Map<string, unknown>).get(t) as Record<string, unknown>[]) || [];
+        const objects =
+          ((p.objectsByType as Map<string, unknown>).get(t) as Record<
+            string,
+            unknown
+          >[]) || [];
 
         // Filter by TLP if set
         const filtered = filter
-          ? objects.filter((obj) => getTLPLabel((obj.object_marking_refs as string[]) || []) === filter)
+          ? objects.filter(
+              (obj) =>
+                getTLPLabel((obj.object_marking_refs as string[]) || []) ===
+                filter
+            )
           : objects;
 
         return {
@@ -90,7 +116,9 @@
     if (!p) return [];
 
     const tlps = new Set<string>();
-    for (const obj of ((p.objectsById as Map<string, Record<string, unknown>>).values())) {
+    for (const obj of (
+      p.objectsById as Map<string, Record<string, unknown>>
+    ).values()) {
       // Only count TLPs of objects the list actually shows
       if (HIDDEN_TYPES.includes(obj.type as string)) continue;
       tlps.add(getTLPLabel((obj.object_marking_refs as string[]) || []));
@@ -101,8 +129,10 @@
   function getTLPButtonColor(tlp: string): string {
     const colorMap: Record<string, string> = {
       CLEAR: 'bg-white dark:bg-slate-700',
+      WHITE: 'bg-white dark:bg-slate-700',
       GREEN: 'bg-green-100 dark:bg-green-900',
       AMBER: 'bg-amber-100 dark:bg-amber-900',
+      'AMBER+STRICT': 'bg-amber-100 dark:bg-amber-900',
       RED: 'bg-red-100 dark:bg-red-900',
     };
     return colorMap[tlp] || 'bg-slate-200 dark:bg-slate-700';
@@ -122,7 +152,9 @@
   </button>
 
   {#if error}
-    <div class="p-4 rounded-lg bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
+    <div
+      class="p-4 rounded-lg bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
+    >
       {error}
     </div>
   {:else if bundle && parsed}
@@ -133,7 +165,11 @@
 
     {#if uniqueTLPs.length > 1}
       <div class="mb-4">
-        <p class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">Filter by TLP:</p>
+        <p
+          class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2"
+        >
+          Filter by TLP:
+        </p>
         <div class="flex flex-wrap gap-1">
           <button
             on:click={() => (tlpFilter = null)}
@@ -165,10 +201,12 @@
       {#each typeGroups as typeGroup (typeGroup.type)}
         <button
           on:click={() => toggleType(typeGroup.type)}
+          aria-expanded={expandedTypes.has(typeGroup.type)}
           class="w-full p-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition text-left flex justify-between items-center"
         >
           <span class="font-semibold">
-            {getObjectIcon(typeGroup.type)} {typeGroup.type}
+            {getObjectIcon(typeGroup.type)}
+            {typeGroup.type}
           </span>
           <span class="text-sm text-slate-600 dark:text-slate-400">
             {typeGroup.count}
@@ -185,7 +223,9 @@
               >
                 <div class="flex-1">
                   <p class="font-medium">{getObjectName(obj)}</p>
-                  <p class="text-xs text-slate-500 dark:text-slate-400">{obj.id}</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">
+                    {obj.id}
+                  </p>
                 </div>
                 <span
                   class={`ml-2 text-xs font-semibold ${

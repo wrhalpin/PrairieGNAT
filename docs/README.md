@@ -4,58 +4,39 @@ This folder contains the GitHub Pages website for PrairieGNAT.
 
 ## Structure
 
-- `index.html` - Home page with features, roadmap, and installation guide
-- `getting-started.html` - Step-by-step getting started guide
-- `styles.css` - Shared CSS styling for the documentation site
-- `_config.yml` - GitHub Pages configuration
-- `.nojekyll` - Disables Jekyll processing to serve custom HTML directly
+- `index.html` — Home page with features, roadmap, and installation guide
+- `getting-started.html` — Step-by-step getting started guide
+- `styles.css` — Shared CSS for both pages
+- `logo.png`, `favicon.png` — Generated from `../PrairieGNAT-logo.png`
+- `.nojekyll` — Disables Jekyll processing so the HTML is served as-is
 
 ## Deployment
 
-The site is automatically deployed to GitHub Pages when changes are pushed to the main branch:
+Served by GitHub Pages from the `/docs` folder on the default branch:
 
 ```
 Repository: wrhalpin/PrairieGNAT
-Branch: main
 Source: /docs folder
-URL: https://prairiegnat.pages.dev (or https://wrhalpin.github.io/PrairieGNAT)
+Docs URL: https://wrhalpin.github.io/PrairieGNAT/
+App URL:  https://prairiegnat.pages.dev (Cloudflare Pages — the PWA itself)
 ```
+
+The docs site and the app are hosted separately: GitHub Pages serves this
+static documentation, Cloudflare Pages serves the installable app.
 
 ## Design
 
-The site uses a modern, minimalist design inspired by GNAT's security-focused aesthetic:
+The site follows the GNAT product ecosystem theme:
 
-- **Color Scheme**: Dark blue/slate with blue accent colors
-- **Typography**: System fonts for optimal performance
-- **Layout**: Responsive grid layouts that work on mobile and desktop
-- **Theme**: STIX/Security analysis focused with clear, professional styling
+- **Color scheme**: Dark green (`#1a4d1a`, `#2d5a2d`) with GNAT green
+  (`#22c55e`) and lime/yellow accents (`#bef264`, `#84cc16`), matching the
+  PrairieGNAT logo
+- **Branding**: "A GNAT Home Companion" positioning, gnat mascot logo
+- **Typography**: System fonts for performance
+- **Layout**: Responsive grids, mobile-first
 
 ## Editing Pages
 
-Each HTML page is self-contained with inline CSS. To edit:
-
-1. Edit the HTML file directly
-2. Update the content sections
-3. Commit and push to trigger deployment
-4. Changes appear at the URL within seconds
-
-## Assets
-
-The site uses:
-- **Logo**: Custom SVG icon (embedded in HTML)
-- **Icons**: Emoji icons for features
-- **No external dependencies**: All CSS is inline for performance
-
-## Configuration
-
-GitHub Pages is configured to:
-- Serve from the `/docs` folder on the main branch
-- Disable Jekyll processing (via `.nojekyll`)
-- Use custom domain (configured in repository settings)
-
-## Performance
-
-- **No build step**: HTML served directly
-- **No external assets**: All CSS and icons embedded
-- **Fast load times**: Minimal dependencies
-- **Mobile optimized**: Responsive design works on all devices
+1. Edit the HTML files directly; shared styles live in `styles.css`
+2. Commit and push to trigger deployment
+3. Changes appear at the docs URL within a couple of minutes

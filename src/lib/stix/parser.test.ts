@@ -31,7 +31,7 @@ describe('STIX Parser', () => {
     };
 
     expect(() => parseBundle(JSON.stringify(invalid))).toThrow(
-      'Invalid STIX bundle',
+      'Invalid STIX bundle'
     );
   });
 
@@ -44,7 +44,7 @@ describe('STIX Parser', () => {
   it('throws on non-array objects field', () => {
     const invalid = { type: 'bundle', id: 'bundle--123', objects: 'nope' };
     expect(() => parseBundle(JSON.stringify(invalid))).toThrow(
-      'objects must be an array',
+      'objects must be an array'
     );
   });
 
@@ -54,7 +54,7 @@ describe('STIX Parser', () => {
 
   it('rejects a bundle without an id (required by spec, and our storage key)', () => {
     expect(() => parseBundle(JSON.stringify({ type: 'bundle' }))).toThrow(
-      'missing required id',
+      'missing required id'
     );
   });
 
@@ -95,8 +95,12 @@ describe('STIX Parser', () => {
     };
 
     const result = parseBundle(JSON.stringify(bundle));
-    expect(result.relationshipsBy.get('malware--1')).toEqual(['relationship--1']);
-    expect(result.relationshipsBy.get('indicator--1')).toEqual(['relationship--1']);
+    expect(result.relationshipsBy.get('malware--1')).toEqual([
+      'relationship--1',
+    ]);
+    expect(result.relationshipsBy.get('indicator--1')).toEqual([
+      'relationship--1',
+    ]);
   });
 
   it('indexes sightings against their referenced objects', () => {

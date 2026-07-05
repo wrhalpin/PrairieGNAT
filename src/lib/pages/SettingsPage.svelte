@@ -1,6 +1,10 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
-  import { loadSettingsAsync, saveSettingsAsync, clearAllAsync } from '$lib/storage/db';
+  import {
+    loadSettingsAsync,
+    saveSettingsAsync,
+    clearAllAsync,
+  } from '$lib/storage/db';
   import { TAXIIClient } from '$lib/taxii/client';
 
   const dispatch = createEventDispatcher();
@@ -86,7 +90,10 @@
       // Only overwrite the stored key when a new one was typed; a blank field
       // means "keep the existing key". Switching to standalone keeps the key
       // stored so switching back doesn't require re-entry.
-      const update: Record<string, unknown> = { mode, gnatInstanceUrl: gnatUrl };
+      const update: Record<string, unknown> = {
+        mode,
+        gnatInstanceUrl: gnatUrl,
+      };
       if (gnatApiKey.trim()) {
         update.gnatApiKey = gnatApiKey.trim();
       }
@@ -141,7 +148,9 @@
     {#if mode === 'gnat'}
       <div class="space-y-4 p-4 rounded-lg bg-slate-100 dark:bg-slate-800">
         <div>
-          <label for="gnat-url" class="block font-semibold mb-2">GNAT Instance URL</label>
+          <label for="gnat-url" class="block font-semibold mb-2"
+            >GNAT Instance URL</label
+          >
           <input
             id="gnat-url"
             type="url"
@@ -167,7 +176,9 @@
                 id="api-key"
                 type="password"
                 bind:value={gnatApiKey}
-                placeholder={hasStoredKey ? '•••••••• (saved — leave blank to keep)' : 'sk-...'}
+                placeholder={hasStoredKey
+                  ? '•••••••• (saved — leave blank to keep)'
+                  : 'sk-...'}
                 class="flex-1 px-3 py-2 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
               />
             {/if}
@@ -181,7 +192,9 @@
         </div>
 
         {#if testMessage}
-          <div class={`p-3 rounded-lg text-sm ${testError ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200' : 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'}`}>
+          <div
+            class={`p-3 rounded-lg text-sm ${testError ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200' : 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'}`}
+          >
             {testMessage}
           </div>
         {/if}
@@ -199,7 +212,9 @@
     <!-- Save lives outside the GNAT block so switching back to standalone
          can actually be persisted -->
     {#if saveMessage}
-      <div class={`p-3 rounded-lg text-sm ${saveError ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200' : 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'}`}>
+      <div
+        class={`p-3 rounded-lg text-sm ${saveError ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200' : 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'}`}
+      >
         {saveMessage}
       </div>
     {/if}
@@ -222,7 +237,9 @@
       </button>
     </div>
 
-    <div class="text-xs text-slate-500 dark:text-slate-400 p-3 rounded-lg bg-slate-100 dark:bg-slate-800">
+    <div
+      class="text-xs text-slate-500 dark:text-slate-400 p-3 rounded-lg bg-slate-100 dark:bg-slate-800"
+    >
       <p><strong>PrairieGNAT</strong> v0.0.1</p>
       <p>Apache 2.0 License</p>
     </div>

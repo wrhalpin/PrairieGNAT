@@ -52,14 +52,18 @@
   <h1 class="text-2xl font-bold mb-4">📋 Paste STIX Bundle</h1>
 
   {#if error}
-    <div class="mb-4 p-3 rounded-lg bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
+    <div
+      class="mb-4 p-3 rounded-lg bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
+    >
       {error}
     </div>
   {/if}
 
   <div class="space-y-4">
     <div>
-      <label for="json-textarea" class="block font-semibold mb-2">STIX Bundle JSON:</label>
+      <label for="json-textarea" class="block font-semibold mb-2"
+        >STIX Bundle JSON:</label
+      >
       <textarea
         id="json-textarea"
         bind:value={jsonText}
@@ -78,7 +82,8 @@
     </button>
 
     <p class="text-xs text-slate-600 dark:text-slate-400">
-      Paste a valid STIX 2.1 bundle in JSON format. The bundle will be saved to your device for offline access.
+      Paste a valid STIX 2.1 bundle in JSON format. The bundle will be saved to
+      your device for offline access.
     </p>
   </div>
 </div>

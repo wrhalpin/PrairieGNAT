@@ -25,16 +25,26 @@ registerRoute(
   ({ request }) => request.destination === 'image',
   new CacheFirst({
     cacheName: 'images',
-    plugins: [new ExpirationPlugin({ maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 })],
-  }),
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 60,
+        maxAgeSeconds: 30 * 24 * 60 * 60,
+      }),
+    ],
+  })
 );
 
 registerRoute(
   ({ request }) => request.destination === 'font',
   new CacheFirst({
     cacheName: 'fonts',
-    plugins: [new ExpirationPlugin({ maxEntries: 20, maxAgeSeconds: 365 * 24 * 60 * 60 })],
-  }),
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 20,
+        maxAgeSeconds: 365 * 24 * 60 * 60,
+      }),
+    ],
+  })
 );
 
 // Share target: the POST arrives before any page is listening, so stash the
@@ -63,7 +73,7 @@ async function handleShareTarget(request: Request): Promise<Response> {
             'Content-Type': 'application/json',
             'X-File-Name': encodeURIComponent(file.name),
           },
-        }),
+        })
       );
     }
   } catch {

@@ -6,7 +6,7 @@
 
 **One-line pitch:** A lightweight, installable, read-only STIX 2.1 reader that runs on any device with a modern browser, with optional GNAT-aware mode for analysts in your org.
 
-**Core principle:** Triage and FSA on the go — *not* full investigation. The reader is a finished-intel consumer and bundle inspector, not a workbench.
+**Core principle:** Triage and FSA on the go — _not_ full investigation. The reader is a finished-intel consumer and bundle inspector, not a workbench.
 
 ### In scope (v1)
 
@@ -26,7 +26,7 @@
 - Background sync (iOS limitation makes this unreliable)
 - Multi-tenant / multi-org support
 
------
+---
 
 ## 2. Architecture
 
@@ -67,16 +67,16 @@ Same codebase, runtime branch on a single feature flag.
 
 ### Stack recommendation
 
-|Layer               |Choice                                                         |Why                                                                                                      |
-|--------------------|---------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
-|Framework           |**Svelte/SvelteKit** or **Preact**                             |Small bundle, fast on cellular, low ceremony. React is fine but heavier than needed for a reader.        |
-|Styling             |**Tailwind CSS**                                               |Utility classes scale well to small screens; easy to keep consistent.                                    |
-|STIX parsing        |Custom TypeScript module                                       |No mature JS STIX 2.1 ORM exists; build a minimal one. Keep model layer pure and separate from transport.|
-|Storage             |**IndexedDB** (via `idb` wrapper)                              |Bundles can be large; localStorage is too small.                                                         |
-|Service Worker      |**Workbox**                                                    |Battle-tested, handles cache strategies, offline fallback.                                               |
-|Build               |**Vite**                                                       |Fast, PWA plugin available, works well on iPad dev workflows.                                            |
-|Hosting (standalone)|**Cloudflare Pages** or **GitHub Pages**                       |Free, HTTPS by default (PWAs require HTTPS).                                                             |
-|Hosting (GNAT mode) |Internal — same network as GNAT or accessible via VPN/WireGuard|                                                                                                         |
+| Layer                | Choice                                                          | Why                                                                                                       |
+| -------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Framework            | **Svelte/SvelteKit** or **Preact**                              | Small bundle, fast on cellular, low ceremony. React is fine but heavier than needed for a reader.         |
+| Styling              | **Tailwind CSS**                                                | Utility classes scale well to small screens; easy to keep consistent.                                     |
+| STIX parsing         | Custom TypeScript module                                        | No mature JS STIX 2.1 ORM exists; build a minimal one. Keep model layer pure and separate from transport. |
+| Storage              | **IndexedDB** (via `idb` wrapper)                               | Bundles can be large; localStorage is too small.                                                          |
+| Service Worker       | **Workbox**                                                     | Battle-tested, handles cache strategies, offline fallback.                                                |
+| Build                | **Vite**                                                        | Fast, PWA plugin available, works well on iPad dev workflows.                                             |
+| Hosting (standalone) | **Cloudflare Pages** or **GitHub Pages**                        | Free, HTTPS by default (PWAs require HTTPS).                                                              |
+| Hosting (GNAT mode)  | Internal — same network as GNAT or accessible via VPN/WireGuard |                                                                                                           |
 
 ### Key architectural decisions to make early
 
@@ -84,30 +84,30 @@ Same codebase, runtime branch on a single feature flag.
 - **Monorepo or split** — a `gnat-reader-core` package (STIX engine) separate from the PWA UI, so the core is reusable and open-sourceable independently
 - **License** — Apache 2.0 is a sensible default if open-sourcing the core; keep GNAT-specific bits proprietary
 
------
+---
 
 ## 3. STIX 2.1 Rendering Strategy
 
 ### Object type → UI treatment
 
-|STIX type                           |Category|Mobile rendering                                                            |
-|------------------------------------|--------|----------------------------------------------------------------------------|
-|Indicator                           |SDO     |Card with pattern, valid_from/until, kill_chain_phases as chips, score badge|
-|Threat Actor                        |SDO     |Profile-style: name, aliases, sophistication, motivation, resource_level    |
-|Malware                             |SDO     |Family card with capabilities, types as chips, is_family flag               |
-|Campaign                            |SDO     |Timeline card with first_seen/last_seen, objective                          |
-|Intrusion Set                       |SDO     |Similar to Threat Actor; cross-link to related TAs                          |
-|Attack Pattern                      |SDO     |MITRE ATT&CK-style: technique ID, tactic phase, link to ATT&CK              |
-|Report                              |SDO     |Hero treatment — title, published date, labels, embedded objects list       |
-|Identity                            |SDO     |Compact card; usually referenced, not browsed                               |
-|Vulnerability                       |SDO     |CVE badge, name, description                                                |
-|Course of Action                    |SDO     |Action card                                                                 |
-|Observed Data                       |SDO     |Expandable, defers to embedded SCOs                                         |
-|Relationship                        |SRO     |Rendered as edges/links on object detail screens, not standalone            |
-|Sighting                            |SRO     |Inline on the sighted object                                                |
-|SCOs (file, ipv4, domain, url, etc.)|SCO     |Compact value chips, copy-to-clipboard, defang toggle                       |
-|Marking Definition                  |meta    |Banner/badge on objects (TLP colors prominent)                              |
-|Note / Opinion                      |meta    |Inline expandable on referenced object                                      |
+| STIX type                            | Category | Mobile rendering                                                             |
+| ------------------------------------ | -------- | ---------------------------------------------------------------------------- |
+| Indicator                            | SDO      | Card with pattern, valid_from/until, kill_chain_phases as chips, score badge |
+| Threat Actor                         | SDO      | Profile-style: name, aliases, sophistication, motivation, resource_level     |
+| Malware                              | SDO      | Family card with capabilities, types as chips, is_family flag                |
+| Campaign                             | SDO      | Timeline card with first_seen/last_seen, objective                           |
+| Intrusion Set                        | SDO      | Similar to Threat Actor; cross-link to related TAs                           |
+| Attack Pattern                       | SDO      | MITRE ATT&CK-style: technique ID, tactic phase, link to ATT&CK               |
+| Report                               | SDO      | Hero treatment — title, published date, labels, embedded objects list        |
+| Identity                             | SDO      | Compact card; usually referenced, not browsed                                |
+| Vulnerability                        | SDO      | CVE badge, name, description                                                 |
+| Course of Action                     | SDO      | Action card                                                                  |
+| Observed Data                        | SDO      | Expandable, defers to embedded SCOs                                          |
+| Relationship                         | SRO      | Rendered as edges/links on object detail screens, not standalone             |
+| Sighting                             | SRO      | Inline on the sighted object                                                 |
+| SCOs (file, ipv4, domain, url, etc.) | SCO      | Compact value chips, copy-to-clipboard, defang toggle                        |
+| Marking Definition                   | meta     | Banner/badge on objects (TLP colors prominent)                               |
+| Note / Opinion                       | meta     | Inline expandable on referenced object                                       |
 
 ### Relationship resolution
 
@@ -126,7 +126,7 @@ Same codebase, runtime branch on a single feature flag.
 - SCOs containing URLs, IPs, domains rendered defanged by default (`hxxp://`, `1.1.1[.]1`)
 - Tap to reveal real value; copy-to-clipboard offers both fanged and defanged
 
------
+---
 
 ## 4. UI / UX
 
@@ -153,7 +153,7 @@ Same codebase, runtime branch on a single feature flag.
 - **No modal traps** — back gesture / hardware back must always work
 - **Copy-friendly** — every IoC, hash, ID has a tap-to-copy affordance
 
------
+---
 
 ## 5. PWA-Specific Implementation
 
@@ -170,13 +170,20 @@ Same codebase, runtime branch on a single feature flag.
   "icons": [
     { "src": "/icons/192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/icons/512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "/icons/maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/icons/maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ],
   "share_target": {
     "action": "/share",
     "method": "POST",
     "enctype": "multipart/form-data",
-    "params": { "files": [{ "name": "bundle", "accept": ["application/json", ".json"] }] }
+    "params": {
+      "files": [{ "name": "bundle", "accept": ["application/json", ".json"] }]
+    }
   },
   "file_handlers": [
     { "action": "/open", "accept": { "application/json": [".json", ".stix"] } }
@@ -212,7 +219,7 @@ Same codebase, runtime branch on a single feature flag.
 - Token refresh on app foreground; force re-auth after N days inactive
 - All API calls over HTTPS only; reject mixed content
 
------
+---
 
 ## 6. Development Roadmap
 
@@ -267,7 +274,7 @@ Same codebase, runtime branch on a single feature flag.
 
 **Total estimate:** ~10 weeks of part-time work, less if focused.
 
------
+---
 
 ## 7. Testing Strategy
 
@@ -282,7 +289,7 @@ Same codebase, runtime branch on a single feature flag.
 - **Sample bundles** — curate a test set: small (10 objects), medium (100), large (1000+), edge cases (malformed, all SDO types, deep relationship chains)
 - **Lighthouse PWA audit** — target 100 on PWA, ≥90 on Performance/Accessibility
 
------
+---
 
 ## 8. CI/CD
 
@@ -295,7 +302,7 @@ Mirror the GNAT toolchain where applicable:
 - **Build & deploy** — GitHub Actions → Cloudflare Pages (standalone) or internal infra (GNAT mode)
 - **Bundle size budget** — fail the build if main bundle exceeds (e.g.) 200KB gzipped
 
------
+---
 
 ## 9. Open Questions / Decisions Needed
 
@@ -307,20 +314,20 @@ Mirror the GNAT toolchain where applicable:
 1. **Hosting** — Cloudflare Pages for standalone is easy; where does GNAT-mode build live?
 1. **Logo / branding** — gnat (the insect) is a fun mark; commit to it or pick something else?
 
------
+---
 
 ## 10. Risks
 
-|Risk                                     |Likelihood|Impact|Mitigation                                                        |
-|-----------------------------------------|----------|------|------------------------------------------------------------------|
-|iOS storage eviction kills cached bundles|High      |Medium|Re-fetch on open; treat cache as transient; clear “last synced” UX|
-|MDM policy blocks PWA distribution       |Medium    |High  |Capacitor wrapper as fallback; check policy early                 |
-|Large bundles (>50MB) cause perf issues  |Medium    |Medium|Streaming parser; virtualized lists; bundle size warnings         |
-|GNAT API doesn’t yet support reader needs|Medium    |Medium|API additions are part of GNAT plan, not blocked on reader        |
-|Scope creep into authoring/editing       |High      |High  |Hold the line on read-only; v2 conversation only after v1 ships   |
-|iOS Safari quirks delay launch           |Medium    |Medium|Test on iOS early and often; Phase 0 spike validates this         |
+| Risk                                      | Likelihood | Impact | Mitigation                                                         |
+| ----------------------------------------- | ---------- | ------ | ------------------------------------------------------------------ |
+| iOS storage eviction kills cached bundles | High       | Medium | Re-fetch on open; treat cache as transient; clear “last synced” UX |
+| MDM policy blocks PWA distribution        | Medium     | High   | Capacitor wrapper as fallback; check policy early                  |
+| Large bundles (>50MB) cause perf issues   | Medium     | Medium | Streaming parser; virtualized lists; bundle size warnings          |
+| GNAT API doesn’t yet support reader needs | Medium     | Medium | API additions are part of GNAT plan, not blocked on reader         |
+| Scope creep into authoring/editing        | High       | High   | Hold the line on read-only; v2 conversation only after v1 ships    |
+| iOS Safari quirks delay launch            | Medium     | Medium | Test on iOS early and often; Phase 0 spike validates this          |
 
------
+---
 
 ## 11. Documentation Deliverables
 

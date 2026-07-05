@@ -44,7 +44,11 @@
   <button
     on:click={handleCopy}
     aria-label="Copy to clipboard"
-    title={copied ? 'Copied!' : copyFailed ? 'Copy failed — check clipboard permissions' : 'Copy'}
+    title={copied
+      ? 'Copied!'
+      : copyFailed
+        ? 'Copy failed — check clipboard permissions'
+        : 'Copy'}
     class="px-2 py-1 rounded text-xs bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
   >
     {copied ? '✓' : copyFailed ? '⚠️' : '📋'}

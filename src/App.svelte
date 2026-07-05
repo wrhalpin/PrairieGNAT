@@ -11,7 +11,15 @@
   import UrlFetchPage from '$lib/pages/UrlFetchPage.svelte';
   import FeedPage from '$lib/pages/FeedPage.svelte';
 
-  type Route = 'library' | 'search' | 'settings' | 'bundle' | 'object' | 'paste' | 'url' | 'feed';
+  type Route =
+    | 'library'
+    | 'search'
+    | 'settings'
+    | 'bundle'
+    | 'object'
+    | 'paste'
+    | 'url'
+    | 'feed';
 
   let currentRoute: Route = 'library';
   let routeParams: Record<string, string> = {};
@@ -43,7 +51,10 @@
     if (parts[0] === 'bundle' && parts[1]) {
       const bundleId = decodeURIComponent(parts[1]);
       if (parts[2] === 'object' && parts[3]) {
-        return { route: 'object', params: { bundleId, objectId: decodeURIComponent(parts[3]) } };
+        return {
+          route: 'object',
+          params: { bundleId, objectId: decodeURIComponent(parts[3]) },
+        };
       }
       return { route: 'bundle', params: { bundleId } };
     }
@@ -61,7 +72,11 @@
     mainEl?.scrollTo(0, 0);
   }
 
-  function navigate(route: Route, params: Record<string, string> = {}, replace = false) {
+  function navigate(
+    route: Route,
+    params: Record<string, string> = {},
+    replace = false
+  ) {
     const url = urlFor(route, params);
     if (replace) {
       history.replaceState({ route, params }, '', url);
@@ -91,7 +106,9 @@
       navigate('bundle', { bundleId: bundleData.id });
     } catch (e) {
       console.error('Error processing shared file:', e);
-      alert(`Error loading shared file: ${e instanceof Error ? e.message : String(e)}`);
+      alert(
+        `Error loading shared file: ${e instanceof Error ? e.message : String(e)}`
+      );
     }
   }
 
@@ -103,7 +120,9 @@
       const response = await cache.match('/shared-bundle');
       if (!response) return;
       await cache.delete('/shared-bundle');
-      const fileName = decodeURIComponent(response.headers.get('X-File-Name') || 'shared-bundle.json');
+      const fileName = decodeURIComponent(
+        response.headers.get('X-File-Name') || 'shared-bundle.json'
+      );
       await handleSharedFile(fileName, await response.text());
     } catch (e) {
       console.error('Error reading shared bundle:', e);
@@ -115,7 +134,10 @@
     if (savedDarkMode === 'true') {
       isDarkMode = true;
       document.documentElement.classList.add('dark');
-    } else if (!savedDarkMode && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    } else if (
+      !savedDarkMode &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches
+    ) {
       isDarkMode = true;
       document.documentElement.classList.add('dark');
     }
@@ -149,7 +171,9 @@
 
 <svelte:window on:popstate={handlePopState} />
 
-<div class="flex flex-col h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50">
+<div
+  class="flex flex-col h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50"
+>
   <main class="flex-1 overflow-auto" bind:this={mainEl}>
     {#if currentRoute === 'library'}
       <Library on:navigate={(e) => navigate(e.detail.route, e.detail.params)} />
@@ -158,21 +182,37 @@
     {:else if currentRoute === 'settings'}
       <SettingsPage on:modechange={(e) => (gnatMode = e.detail.gnat)} />
     {:else if currentRoute === 'feed' && gnatMode}
-      <FeedPage on:navigate={(e) => navigate(e.detail.route, e.detail.params)} />
+      <FeedPage
+        on:navigate={(e) => navigate(e.detail.route, e.detail.params)}
+      />
     {:else if currentRoute === 'paste'}
-      <PasteJsonPage on:navigate={(e) => navigate(e.detail.route, e.detail.params)} />
+      <PasteJsonPage
+        on:navigate={(e) => navigate(e.detail.route, e.detail.params)}
+      />
     {:else if currentRoute === 'url'}
-      <UrlFetchPage on:navigate={(e) => navigate(e.detail.route, e.detail.params)} />
+      <UrlFetchPage
+        on:navigate={(e) => navigate(e.detail.route, e.detail.params)}
+      />
     {:else if currentRoute === 'bundle'}
-      <BundleDetail bundleId={routeParams.bundleId} on:navigate={(e) => navigate(e.detail.route, e.detail.params)} />
+      <BundleDetail
+        bundleId={routeParams.bundleId}
+        on:navigate={(e) => navigate(e.detail.route, e.detail.params)}
+      />
     {:else if currentRoute === 'object'}
-      <ObjectDetail bundleId={routeParams.bundleId} objectId={routeParams.objectId} on:navigate={(e) => navigate(e.detail.route, e.detail.params)} />
+      <ObjectDetail
+        bundleId={routeParams.bundleId}
+        objectId={routeParams.objectId}
+        on:navigate={(e) => navigate(e.detail.route, e.detail.params)}
+      />
     {/if}
   </main>
 
-  <nav class="fixed bottom-0 left-0 right-0 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 flex gap-1 px-2 py-2">
+  <nav
+    class="fixed bottom-0 left-0 right-0 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 flex gap-1 px-2 py-2"
+  >
     <button
       on:click={() => navigate('library')}
+      aria-current={currentRoute === 'library' ? 'page' : undefined}
       class={`flex-1 py-2 px-3 text-center rounded transition text-sm ${currentRoute === 'library' ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`}
     >
       📚 Library
@@ -180,6 +220,7 @@
     {#if gnatMode}
       <button
         on:click={() => navigate('feed')}
+        aria-current={currentRoute === 'feed' ? 'page' : undefined}
         class={`flex-1 py-2 px-3 text-center rounded transition text-sm ${currentRoute === 'feed' ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`}
       >
         📡 Feed
@@ -187,12 +228,14 @@
     {/if}
     <button
       on:click={() => navigate('search')}
+      aria-current={currentRoute === 'search' ? 'page' : undefined}
       class={`flex-1 py-2 px-3 text-center rounded transition text-sm ${currentRoute === 'search' ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`}
     >
       🔍 Search
     </button>
     <button
       on:click={() => navigate('settings')}
+      aria-current={currentRoute === 'settings' ? 'page' : undefined}
       class={`flex-1 py-2 px-3 text-center rounded transition text-sm ${currentRoute === 'settings' ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`}
     >
       ⚙️ Settings

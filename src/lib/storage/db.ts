@@ -42,7 +42,9 @@ function getDb(): Promise<IDBPDatabase> {
       upgrade(db) {
         // Bundles store
         if (!db.objectStoreNames.contains('bundles')) {
-          const bundleStore = db.createObjectStore('bundles', { keyPath: 'id' });
+          const bundleStore = db.createObjectStore('bundles', {
+            keyPath: 'id',
+          });
           bundleStore.createIndex('openedAt', 'openedAt');
         }
 
@@ -53,12 +55,16 @@ function getDb(): Promise<IDBPDatabase> {
 
         // Bookmarks store
         if (!db.objectStoreNames.contains('bookmarks')) {
-          db.createObjectStore('bookmarks', { keyPath: ['objectId', 'bundleId'] });
+          db.createObjectStore('bookmarks', {
+            keyPath: ['objectId', 'bundleId'],
+          });
         }
 
         // Read state store
         if (!db.objectStoreNames.contains('readState')) {
-          db.createObjectStore('readState', { keyPath: ['objectId', 'bundleId'] });
+          db.createObjectStore('readState', {
+            keyPath: ['objectId', 'bundleId'],
+          });
         }
       },
       blocking() {
@@ -79,7 +85,7 @@ export async function saveBundleAsync(
   name: string,
   bundle: Bundle,
   source: 'file' | 'paste' | 'url' | 'taxii' | 'share',
-  sourceUrl?: string,
+  sourceUrl?: string
 ): Promise<void> {
   const idb = await getDb();
   try {
@@ -93,7 +99,9 @@ export async function saveBundleAsync(
     } as BundleRecord);
   } catch (e) {
     if (e instanceof DOMException && e.name === 'QuotaExceededError') {
-      throw new Error('Storage is full — delete old bundles or free up device space, then retry');
+      throw new Error(
+        'Storage is full — delete old bundles or free up device space, then retry'
+      );
     }
     throw e;
   }
@@ -105,7 +113,9 @@ export async function loadBundlesAsync(): Promise<BundleRecord[]> {
   return allBundles.sort((a, b) => b.openedAt - a.openedAt);
 }
 
-export async function loadBundleAsync(id: string): Promise<BundleRecord | undefined> {
+export async function loadBundleAsync(
+  id: string
+): Promise<BundleRecord | undefined> {
   const idb = await getDb();
   return idb.get('bundles', id);
 }
@@ -114,7 +124,10 @@ export async function deleteBundleAsync(id: string): Promise<void> {
   const idb = await getDb();
   // Single transaction: the bundle, its bookmarks, and its read state go
   // together or not at all.
-  const tx = idb.transaction(['bundles', 'bookmarks', 'readState'], 'readwrite');
+  const tx = idb.transaction(
+    ['bundles', 'bookmarks', 'readState'],
+    'readwrite'
+  );
   await tx.objectStore('bundles').delete(id);
   for (const storeName of ['bookmarks', 'readState'] as const) {
     const store = tx.objectStore(storeName);
@@ -128,7 +141,9 @@ export async function deleteBundleAsync(id: string): Promise<void> {
   await tx.done;
 }
 
-export async function saveSettingsAsync(settings: Partial<AppSettings>): Promise<void> {
+export async function saveSettingsAsync(
+  settings: Partial<AppSettings>
+): Promise<void> {
   const idb = await getDb();
   // Read-modify-write inside one transaction so concurrent saves (e.g. a feed
   // sync writing lastFeedSync while the user saves credentials) can't lose
@@ -145,16 +160,27 @@ export async function saveSettingsAsync(settings: Partial<AppSettings>): Promise
 
 export async function loadSettingsAsync(): Promise<AppSettings> {
   const idb = await getDb();
-  const settings = (await idb.get('settings', 'app')) as AppSettings | undefined;
-  return settings || {
-    mode: 'standalone',
-    darkMode: 'auto',
-  };
+  const settings = (await idb.get('settings', 'app')) as
+    | AppSettings
+    | undefined;
+  return (
+    settings || {
+      mode: 'standalone',
+      darkMode: 'auto',
+    }
+  );
 }
 
-export async function getGnatConfigAsync(): Promise<{ url: string; apiKey: string } | null> {
+export async function getGnatConfigAsync(): Promise<{
+  url: string;
+  apiKey: string;
+} | null> {
   const settings = await loadSettingsAsync();
-  if (settings.mode === 'gnat' && settings.gnatInstanceUrl && settings.gnatApiKey) {
+  if (
+    settings.mode === 'gnat' &&
+    settings.gnatInstanceUrl &&
+    settings.gnatApiKey
+  ) {
     return {
       url: settings.gnatInstanceUrl,
       apiKey: settings.gnatApiKey,
@@ -165,7 +191,7 @@ export async function getGnatConfigAsync(): Promise<{ url: string; apiKey: strin
 
 export async function addBookmarkAsync(
   bundleId: string,
-  objectId: string,
+  objectId: string
 ): Promise<void> {
   const idb = await getDb();
   await idb.put('bookmarks', {
@@ -177,14 +203,14 @@ export async function addBookmarkAsync(
 
 export async function removeBookmarkAsync(
   bundleId: string,
-  objectId: string,
+  objectId: string
 ): Promise<void> {
   const idb = await getDb();
   await idb.delete('bookmarks', [objectId, bundleId]);
 }
 
 export async function getBookmarksAsync(
-  bundleId: string,
+  bundleId: string
 ): Promise<Set<string>> {
   const idb = await getDb();
   const allBookmarks = await idb.getAll('bookmarks');
@@ -197,7 +223,9 @@ export async function getBookmarksAsync(
   return bookmarked;
 }
 
-export async function getAllBookmarkCountsAsync(): Promise<Record<string, number>> {
+export async function getAllBookmarkCountsAsync(): Promise<
+  Record<string, number>
+> {
   const idb = await getDb();
   const allBookmarks = await idb.getAll('bookmarks');
   const counts: Record<string, number> = {};
@@ -210,7 +238,7 @@ export async function getAllBookmarkCountsAsync(): Promise<Record<string, number
 export async function setReadStateAsync(
   bundleId: string,
   objectId: string,
-  isRead: boolean,
+  isRead: boolean
 ): Promise<void> {
   const idb = await getDb();
   await idb.put('readState', {
@@ -221,7 +249,7 @@ export async function setReadStateAsync(
 }
 
 export async function getReadStateAsync(
-  bundleId: string,
+  bundleId: string
 ): Promise<Set<string>> {
   const idb = await getDb();
   const allReadStates = await idb.getAll('readState');
@@ -239,7 +267,10 @@ export interface FeedCache {
   syncTime: string | null;
 }
 
-export async function saveFeedCacheAsync(reports: unknown[], syncTime: string): Promise<void> {
+export async function saveFeedCacheAsync(
+  reports: unknown[],
+  syncTime: string
+): Promise<void> {
   const idb = await getDb();
   await idb.put('settings', { key: 'feed-cache', reports, syncTime });
 }

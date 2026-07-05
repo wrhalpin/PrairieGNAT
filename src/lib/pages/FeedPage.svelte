@@ -33,7 +33,11 @@
     try {
       const settings = await loadSettingsAsync();
 
-      if (settings.mode !== 'gnat' || !settings.gnatInstanceUrl || !settings.gnatApiKey) {
+      if (
+        settings.mode !== 'gnat' ||
+        !settings.gnatInstanceUrl ||
+        !settings.gnatApiKey
+      ) {
         error = 'GNAT instance not configured. Please configure in Settings.';
         return;
       }
@@ -48,11 +52,14 @@
       error = null;
 
       try {
-        const response = await fetch(`${settings.gnatInstanceUrl}/api/reports`, {
-          headers: {
-            'X-Api-Key': settings.gnatApiKey,
-          },
-        });
+        const response = await fetch(
+          `${settings.gnatInstanceUrl}/api/reports`,
+          {
+            headers: {
+              'X-Api-Key': settings.gnatApiKey,
+            },
+          }
+        );
 
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -63,7 +70,8 @@
 
         reports = reportsList.sort(
           (a, b) =>
-            new Date(b.published || 0).getTime() - new Date(a.published || 0).getTime()
+            new Date(b.published || 0).getTime() -
+            new Date(a.published || 0).getTime()
         );
 
         // Cache the feed
@@ -111,7 +119,10 @@
       loading = true;
       error = null;
 
-      const client = new TAXIIClient(settings.gnatInstanceUrl, settings.gnatApiKey);
+      const client = new TAXIIClient(
+        settings.gnatInstanceUrl,
+        settings.gnatApiKey
+      );
       const bundle = await client.getObject(report.id);
 
       if (!bundle) {
@@ -143,7 +154,10 @@
   }
 </script>
 
-<svelte:window on:online={() => (isOnline = true)} on:offline={() => (isOnline = false)} />
+<svelte:window
+  on:online={() => (isOnline = true)}
+  on:offline={() => (isOnline = false)}
+/>
 
 <div class="p-4 pb-20">
   <div class="flex justify-between items-center mb-4">
@@ -158,13 +172,17 @@
   </div>
 
   {#if error}
-    <div class="mb-4 p-3 rounded-lg bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-sm">
+    <div
+      class="mb-4 p-3 rounded-lg bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 text-sm"
+    >
       {error}
     </div>
   {/if}
 
   {#if !isOnline}
-    <div class="mb-4 p-3 rounded-lg bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 text-sm flex items-center gap-2">
+    <div
+      class="mb-4 p-3 rounded-lg bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 text-sm flex items-center gap-2"
+    >
       📵 Offline mode - showing cached feed
     </div>
   {/if}
@@ -191,10 +209,14 @@
             <div class="flex-1">
               <p class="font-semibold text-sm">{report.name}</p>
               <p class="text-xs text-slate-500 dark:text-slate-400">
-                {new Date(report.published).toLocaleString()}
+                {report.published
+                  ? new Date(report.published).toLocaleString()
+                  : '—'}
               </p>
               {#if report.description}
-                <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 line-clamp-2">
+                <p
+                  class="text-xs text-slate-600 dark:text-slate-300 mt-1 line-clamp-2"
+                >
                   {report.description}
                 </p>
               {/if}

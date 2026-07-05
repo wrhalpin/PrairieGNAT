@@ -41,7 +41,10 @@
         url
       );
 
-      dispatch('navigate', { route: 'bundle', params: { bundleId: bundleData.id } });
+      dispatch('navigate', {
+        route: 'bundle',
+        params: { bundleId: bundleData.id },
+      });
     } catch (e) {
       error = `Failed to fetch: ${e instanceof Error ? e.message : String(e)}`;
       console.error(error, e);
@@ -62,14 +65,18 @@
   <h1 class="text-2xl font-bold mb-4">🔗 Fetch from URL</h1>
 
   {#if error}
-    <div class="mb-4 p-3 rounded-lg bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
+    <div
+      class="mb-4 p-3 rounded-lg bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
+    >
       {error}
     </div>
   {/if}
 
   <div class="space-y-4">
     <div>
-      <label for="url-input" class="block font-semibold mb-2">Bundle URL or TAXII Endpoint:</label>
+      <label for="url-input" class="block font-semibold mb-2"
+        >Bundle URL or TAXII Endpoint:</label
+      >
       <input
         id="url-input"
         type="url"
@@ -84,7 +91,9 @@
     </div>
 
     <div>
-      <label for="api-key-input" class="block font-semibold mb-2">API Key (Optional)</label>
+      <label for="api-key-input" class="block font-semibold mb-2"
+        >API Key (Optional)</label
+      >
       <div class="flex gap-2">
         {#if showApiKey}
           <input

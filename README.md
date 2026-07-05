@@ -53,40 +53,46 @@ npm run lint:fix
 
 ## Status
 
-**Phase 1 MVP — COMPLETE** ✅
+**Phases 0–3 complete; Phase 4 (v1.0 release) in progress**
 
 ### Phase Completion
+
 - ✅ **Phase 0** — Spike complete, stack validated
 - ✅ **Phase 1** — MVP complete, all core features implemented
-- ⏳ **Phase 2** — Planned (bookmarks, defanging, share target)
-- ⏳ **Phase 3** — Planned (GNAT mode)
-- ⏳ **Phase 4** — Planned (v1.0 release)
+- ✅ **Phase 2** — Bookmarks, read state, defanging, cross-bundle search, share target
+- ✅ **Phase 3** — GNAT mode (auth, dissemination feed, deep links, TLP filtering)
+- 🔄 **Phase 4** — v1.0 release, docs, open-source prep
 
 ## Phase 1 Features
 
 ✅ **STIX 2.1 Support**
+
 - Parse all 18 SDOs, SROs, and common SCOs
 - Type-specific rendering for each object class
 - Relationship resolution and navigation
 
 ✅ **Data Input Methods**
+
 - Load bundles from file (drag-drop, file picker)
 - Paste raw JSON with validation
 - Fetch from HTTP URL or TAXII 2.1 endpoints
 - Test bundle included
 
 ✅ **Search & Filtering**
+
 - Within-bundle search (name, description, ID, type)
 - Cross-bundle search across all loaded bundles
-- Real-time results with up to 50 matches
+- Real-time results with up to 100 matches
 
 ✅ **Offline Capability**
+
 - Service worker with intelligent caching
 - App shell caching for instant load
 - API response caching (network-first with fallback)
 - Fully functional without network after first load
 
 ✅ **UI/UX**
+
 - Dark mode with system preference detection
 - Mobile-first responsive design (Tailwind CSS)
 - Touch targets ≥44pt (iOS HIG)
@@ -94,35 +100,39 @@ npm run lint:fix
 - Bundle management (list, cache, delete)
 
 ✅ **Developer Experience**
+
 - TypeScript strict mode
 - ESLint + Prettier
 - Vitest ready for unit tests
 - GitHub Actions CI/CD
-- <16KB gzip bundle size
+- ~25KB gzip core bundle (200KB budget)
 
 ## Project Structure
 
 ```
+index.html             # App shell (Vite entry)
 src/
-├── app.html           # HTML shell
-├── routes/            # SvelteKit pages
+├── main.ts            # Entry point (mounts App, registers SW)
+├── App.svelte         # Routing, navigation, dark mode
+├── sw.ts              # Service worker (built via vite-plugin-pwa)
 ├── lib/
-│   ├── stix/          # STIX 2.1 parser & types
+│   ├── stix/          # STIX 2.1 parser, renderers, defanging, types
 │   ├── storage/       # IndexedDB persistence
 │   ├── taxii/         # TAXII 2.1 client
+│   ├── pages/         # Screen components
 │   └── components/    # Reusable UI components
 └── styles/            # Global CSS (Tailwind)
 
 public/
 ├── manifest.webmanifest
-└── icons/             # PWA icons
+├── icons/             # PWA icons (generated: npm run icons)
+└── test-bundle-small.json
 
-tests/                 # Vitest unit tests
+scripts/               # Icon generation
+docs/                  # GitHub Pages site
 ```
 
-## Configuration
-
-See `.env.example` for available environment variables.
+Tests live next to the code they cover (`src/**/*.test.ts`).
 
 ## Testing
 
@@ -131,7 +141,7 @@ See `.env.example` for available environment variables.
 npm run test
 
 # Run tests in watch mode
-npm run test -- --watch
+npm run test:watch
 
 # Run with UI
 npm run test:ui

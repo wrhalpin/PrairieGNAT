@@ -18,6 +18,8 @@ module.exports = {
   },
   plugins: ['@typescript-eslint', 'svelte'],
   rules: {
+    // STIX objects are open-shaped by spec; treat explicit any as a warning
+    '@typescript-eslint/no-explicit-any': 'warn',
     'no-unused-vars': 'off',
     '@typescript-eslint/no-unused-vars': [
       'warn',

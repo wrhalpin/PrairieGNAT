@@ -27,7 +27,9 @@ export interface TAXIIDiscovery {
 function assertSecureUrl(url: URL): void {
   const isLocal = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
   if (url.protocol !== 'https:' && !isLocal) {
-    throw new Error('Only HTTPS URLs are allowed (or localhost for development)');
+    throw new Error(
+      'Only HTTPS URLs are allowed (or localhost for development)'
+    );
   }
 }
 
@@ -82,7 +84,9 @@ export class TAXIIClient {
       });
     } catch (e) {
       if (e instanceof DOMException && e.name === 'TimeoutError') {
-        throw new Error(`Request timed out after ${DEFAULT_TIMEOUT_MS / 1000}s`);
+        throw new Error(
+          `Request timed out after ${DEFAULT_TIMEOUT_MS / 1000}s`
+        );
       }
       throw e;
     }
@@ -97,14 +101,14 @@ export class TAXIIClient {
         // non-JSON error body; status line is all we have
       }
       throw new Error(
-        `Request failed: ${response.status} ${response.statusText}${detail ? ` — ${detail}` : ''}`,
+        `Request failed: ${response.status} ${response.statusText}${detail ? ` — ${detail}` : ''}`
       );
     }
 
     const contentType = response.headers.get('Content-Type') || '';
     if (!contentType.includes('json')) {
       throw new Error(
-        `Server returned ${contentType || 'an unknown content type'} instead of JSON — check the URL`,
+        `Server returned ${contentType || 'an unknown content type'} instead of JSON — check the URL`
       );
     }
 
@@ -116,9 +120,17 @@ export class TAXIIClient {
   }
 
   async getDiscovery(): Promise<TAXIIDiscovery> {
-    const data = (await this.requestPath('/taxii/discovery')) as TAXIIDiscovery | null;
-    if (!data || typeof data !== 'object' || (!('title' in data) && !('api_roots' in data))) {
-      throw new Error('Response is not a TAXII discovery document — is this a GNAT/TAXII server?');
+    const data = (await this.requestPath(
+      '/taxii/discovery'
+    )) as TAXIIDiscovery | null;
+    if (
+      !data ||
+      typeof data !== 'object' ||
+      (!('title' in data) && !('api_roots' in data))
+    ) {
+      throw new Error(
+        'Response is not a TAXII discovery document — is this a GNAT/TAXII server?'
+      );
     }
     return data;
   }
@@ -132,15 +144,20 @@ export class TAXIIClient {
     return data.collections || [];
   }
 
-  async getCollectionObjects(collectionId: string, limit = 100): Promise<TAXIIObjectsResponse> {
+  async getCollectionObjects(
+    collectionId: string,
+    limit = 100
+  ): Promise<TAXIIObjectsResponse> {
     const params = new URLSearchParams({ limit: limit.toString() });
     return (await this.requestPath(
-      `/taxii/collections/${encodeURIComponent(collectionId)}/objects?${params}`,
+      `/taxii/collections/${encodeURIComponent(collectionId)}/objects?${params}`
     )) as TAXIIObjectsResponse;
   }
 
   async getObject(objectId: string): Promise<Bundle> {
-    const data = await this.requestPath(`/taxii/objects/${encodeURIComponent(objectId)}`);
+    const data = await this.requestPath(
+      `/taxii/objects/${encodeURIComponent(objectId)}`
+    );
     return toBundle(data);
   }
 

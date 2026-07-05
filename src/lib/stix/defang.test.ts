@@ -1,13 +1,23 @@
 import { describe, it, expect } from 'vitest';
-import { defangValue, defangUrl, defangDots, defangIpv6, defangEmail } from './defang';
+import {
+  defangValue,
+  defangUrl,
+  defangDots,
+  defangIpv6,
+  defangEmail,
+} from './defang';
 
 describe('defang', () => {
   it('brackets every dot in an IPv4 address', () => {
-    expect(defangValue('ipv4-addr', '192.168.10.55')).toBe('192[.]168[.]10[.]55');
+    expect(defangValue('ipv4-addr', '192.168.10.55')).toBe(
+      '192[.]168[.]10[.]55'
+    );
   });
 
   it('defangs domain names', () => {
-    expect(defangValue('domain-name', 'evil-c2.example.com')).toBe('evil-c2[.]example[.]com');
+    expect(defangValue('domain-name', 'evil-c2.example.com')).toBe(
+      'evil-c2[.]example[.]com'
+    );
   });
 
   it('brackets colons in IPv6 addresses', () => {
@@ -15,8 +25,12 @@ describe('defang', () => {
   });
 
   it('preserves the TLS distinction for URLs', () => {
-    expect(defangValue('url', 'https://evil.com/payload')).toBe('hxxps://evil[.]com/payload');
-    expect(defangValue('url', 'http://evil.com/payload')).toBe('hxxp://evil[.]com/payload');
+    expect(defangValue('url', 'https://evil.com/payload')).toBe(
+      'hxxps://evil[.]com/payload'
+    );
+    expect(defangValue('url', 'http://evil.com/payload')).toBe(
+      'hxxp://evil[.]com/payload'
+    );
   });
 
   it('defangs ftp URLs', () => {
@@ -29,7 +43,9 @@ describe('defang', () => {
   });
 
   it('defangs email addresses', () => {
-    expect(defangValue('email-addr', 'phisher@evil.com')).toBe('phisher[at]evil[.]com');
+    expect(defangValue('email-addr', 'phisher@evil.com')).toBe(
+      'phisher[at]evil[.]com'
+    );
   });
 
   it('returns undefined for types without a defanging convention', () => {

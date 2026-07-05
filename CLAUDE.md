@@ -23,13 +23,13 @@
 
 ## Development Phases
 
-| Phase | Duration | Scope | Exit Criteria |
-|-------|----------|-------|---------------|
-| 0 (Spike) | 1 week | Validate stack, STIX parser MVP, TAXII client, device test | Install PWA on iPad/Android, load bundle |
-| 1 (MVP) | 3–4 weeks | Full STIX 2.1 ORM, Library/Bundle/Object screens, file I/O, offline | Standalone reader works iOS/Android/desktop |
-| 2 (Polish) | 2 weeks | Bookmarks, cross-bundle search, defanging, share target, docs | Ready for beta |
-| 3 (GNAT mode) | 2–3 weeks | Auth, dissemination feed, deep links, offline snapshot | Analysts can triage in field |
-| 4 (Release) | 1 week | CI/CD, open-source prep, v1.0 release | v1 shipped & documented |
+| Phase         | Duration  | Scope                                                               | Exit Criteria                               |
+| ------------- | --------- | ------------------------------------------------------------------- | ------------------------------------------- |
+| 0 (Spike)     | 1 week    | Validate stack, STIX parser MVP, TAXII client, device test          | Install PWA on iPad/Android, load bundle    |
+| 1 (MVP)       | 3–4 weeks | Full STIX 2.1 ORM, Library/Bundle/Object screens, file I/O, offline | Standalone reader works iOS/Android/desktop |
+| 2 (Polish)    | 2 weeks   | Bookmarks, cross-bundle search, defanging, share target, docs       | Ready for beta                              |
+| 3 (GNAT mode) | 2–3 weeks | Auth, dissemination feed, deep links, offline snapshot              | Analysts can triage in field                |
+| 4 (Release)   | 1 week    | CI/CD, open-source prep, v1.0 release                               | v1 shipped & documented                     |
 
 ## Critical Files
 
@@ -37,7 +37,7 @@
 - `EXECUTION_PLAN.md` — phased delivery plan with tasks and go/no-go gates
 - `src/` — TypeScript source (framework, STIX engine, UI)
 - `public/` — PWA manifest, icons, static assets
-- `tests/` — Vitest unit + integration tests
+- `src/**/*.test.ts` — Vitest unit tests (colocated with source)
 - `docs/` — end-user & developer documentation
 
 ## Quick Start (Phase 0)
@@ -68,6 +68,7 @@ npm run preview      # Preview production build
 ## Context for AI
 
 When helping with code:
+
 - Prioritize read-only, offline-first design
 - Keep STIX parser pure (no side effects)
 - Ensure accessibility (touch targets ≥44pt, VoiceOver support, dark mode)

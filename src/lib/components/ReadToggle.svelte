@@ -7,11 +7,15 @@
 
   let isRead = false;
   let loading = false;
+  let interacted = false;
 
   onMount(async () => {
     try {
       const readState = await getReadStateAsync(bundleId);
-      isRead = readState.has(objectId);
+      // Don't clobber a toggle the user made before this read resolved
+      if (!interacted) {
+        isRead = readState.has(objectId);
+      }
     } catch (e) {
       console.error('Failed to load read state:', e);
     }
@@ -19,6 +23,7 @@
 
   async function toggleRead() {
     try {
+      interacted = true;
       loading = true;
       await setReadStateAsync(bundleId, objectId, !isRead);
       isRead = !isRead;
@@ -40,5 +45,6 @@
       : 'bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600'
   } disabled:opacity-50`}
 >
-  {isRead ? '✓' : '○'} {isRead ? 'Read' : 'Unread'}
+  {isRead ? '✓' : '○'}
+  {isRead ? 'Read' : 'Unread'}
 </button>

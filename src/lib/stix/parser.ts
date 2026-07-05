@@ -1,4 +1,11 @@
-import type { Bundle, StixObject, Indicator, ThreatActor, Malware, Campaign } from './types';
+import type {
+  Bundle,
+  StixObject,
+  Indicator,
+  ThreatActor,
+  Malware,
+  Campaign,
+} from './types';
 
 export interface ParsedBundle {
   bundle: Bundle;
@@ -85,42 +92,19 @@ export function parseBundle(jsonString: string): ParsedBundle {
   };
 }
 
-export function getRelatedObjects(
-  objectId: string,
-  parsed: ParsedBundle,
-): StixObject[] {
-  const relationshipIds = parsed.relationshipsBy.get(objectId) || [];
-  const relatedObjects: StixObject[] = [];
-
-  for (const relId of relationshipIds) {
-    const rel = parsed.objectsById.get(relId) as any;
-    if (rel && rel.source_ref) {
-      const sourceObj = parsed.objectsById.get(rel.source_ref);
-      if (sourceObj) {
-        relatedObjects.push(sourceObj);
-      }
-    }
-  }
-
-  return relatedObjects;
-}
-
 export function getTLPColor(marking: any): string {
   if (!marking) return '#ffffff'; // default white/clear
 
   const definition = marking.definition;
-  if (!definition || !definition.tlp) return '#ffffff';
+  if (!definition || typeof definition.tlp !== 'string') return '#ffffff';
 
-  const tlp = definition.tlp.toLowerCase();
+  const tlp = definition.tlp.toLowerCase().replace(/^tlp:/, '');
   const colors: { [key: string]: string } = {
-    'tlp:clear': '#ffffff',
-    'tlp:green': '#33cc33',
-    'tlp:amber': '#ffcc00',
-    'tlp:amber+strict': '#cc6600',
-    'tlp:red': '#ff3333',
     clear: '#ffffff',
+    white: '#ffffff', // TLP 1.0 name for CLEAR
     green: '#33cc33',
     amber: '#ffcc00',
+    'amber+strict': '#cc6600',
     red: '#ff3333',
   };
 
@@ -160,9 +144,12 @@ export function getObjectIcon(type: string): string {
     'ipv6-addr': '📍',
     url: '🔗',
     'email-addr': '✉️',
+    'email-message': '📧',
     file: '📁',
-    phone: '📱',
     process: '⚙️',
+    software: '💿',
+    mutex: '🔒',
+    'network-traffic': '🚦',
     'windows-registry-key': '🔑',
     'x509-certificate': '📜',
     relationship: '🔗',
@@ -170,6 +157,12 @@ export function getObjectIcon(type: string): string {
     'marking-definition': '🏷️',
     note: '📝',
     opinion: '💭',
+    tool: '🔧',
+    infrastructure: '🏗️',
+    grouping: '🗂️',
+    location: '🗺️',
+    'malware-analysis': '🔬',
+    incident: '🚨',
   };
   return icons[type] || '📌';
 }
@@ -182,32 +175,76 @@ export function getObjectSubtitle(obj: StixObject): string {
   if (type === 'malware') return data.labels?.[0] || 'Malicious software';
   if (type === 'threat-actor') return data.resource_level || 'Threat actor';
   if (type === 'campaign') return data.objective || 'Campaign';
-  if (type === 'report') return `${data.report_types?.[0] || 'Report'} • ${data.object_refs?.length || 0} objects`;
-  if (type === 'attack-pattern') return data.external_references?.[0]?.external_id || 'ATT&CK technique';
-  if (type === 'vulnerability') return data.labels?.[0] || 'Security vulnerability';
-  if (type === 'observed-data') return `${data.object_refs?.length || 0} observations`;
+  if (type === 'report')
+    return `${data.report_types?.[0] || 'Report'} • ${data.object_refs?.length || 0} objects`;
+  if (type === 'attack-pattern')
+    return data.external_references?.[0]?.external_id || 'ATT&CK technique';
+  if (type === 'vulnerability')
+    return data.labels?.[0] || 'Security vulnerability';
+  if (type === 'observed-data')
+    return `${data.object_refs?.length || 0} observations`;
   if (type === 'identity') return data.identity_class || 'Identity';
   if (type === 'course-of-action') return 'Mitigation';
   if (type === 'intrusion-set') return data.goals?.[0] || 'Intrusion set';
-  if (type === 'sighting') return `Seen ${data.count || 1} time(s)`;
+  if (type === 'sighting') return `Seen ${data.count ?? 1} time(s)`;
   if (type === 'relationship') return (data as any).relationship_type;
-  if (type === 'domain-name' || type === 'ipv4-addr' || type === 'ipv6-addr' || type === 'url' || type === 'email-addr') {
-    return data.value || type.replace('-', ' ');
+  if (
+    type === 'domain-name' ||
+    type === 'ipv4-addr' ||
+    type === 'ipv6-addr' ||
+    type === 'url' ||
+    type === 'email-addr'
+  ) {
+    return data.value || type.replace(/-/g, ' ');
   }
 
-  return type.replace('-', ' ');
+  return type.replace(/-/g, ' ');
 }
 
-export function getObjectCategory(type: string): 'sdo' | 'sro' | 'sco' | 'meta' {
+export function getObjectCategory(
+  type: string
+): 'sdo' | 'sro' | 'sco' | 'meta' {
   const sdos = [
-    'attack-pattern', 'campaign', 'course-of-action', 'identity', 'indicator',
-    'intrusion-set', 'malware', 'note', 'opinion', 'report', 'threat-actor', 'vulnerability', 'observed-data'
+    'attack-pattern',
+    'campaign',
+    'course-of-action',
+    'grouping',
+    'identity',
+    'incident',
+    'indicator',
+    'infrastructure',
+    'intrusion-set',
+    'location',
+    'malware',
+    'malware-analysis',
+    'note',
+    'observed-data',
+    'opinion',
+    'report',
+    'threat-actor',
+    'tool',
+    'vulnerability',
   ];
   const sros = ['relationship', 'sighting'];
   const scos = [
-    'artifact', 'autonomous-system', 'directory', 'domain-name', 'email-addr',
-    'file', 'ipv4-addr', 'ipv6-addr', 'mac-addr', 'mutex', 'network-traffic',
-    'process', 'software', 'url', 'user-account', 'windows-registry-key', 'x509-certificate'
+    'artifact',
+    'autonomous-system',
+    'directory',
+    'domain-name',
+    'email-addr',
+    'email-message',
+    'file',
+    'ipv4-addr',
+    'ipv6-addr',
+    'mac-addr',
+    'mutex',
+    'network-traffic',
+    'process',
+    'software',
+    'url',
+    'user-account',
+    'windows-registry-key',
+    'x509-certificate',
   ];
 
   if (sdos.includes(type)) return 'sdo';

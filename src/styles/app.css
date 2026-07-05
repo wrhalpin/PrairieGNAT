@@ -40,7 +40,8 @@
 }
 
 /* Button styles for better accessibility */
-button, a[role="button"] {
+button,
+a[role='button'] {
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -73,11 +74,15 @@ a:focus-visible {
 }
 
 /* Ensure form inputs are accessible */
-input, textarea, select {
+input,
+textarea,
+select {
   font-size: 16px; /* Prevent zoom on iOS */
 }
 
-input:focus-visible, textarea:focus-visible, select:focus-visible {
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }

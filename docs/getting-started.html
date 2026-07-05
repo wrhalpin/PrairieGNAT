@@ -1,217 +1,363 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Install PrairieGNAT and load your first STIX 2.1 bundle in 3 minutes"
+    />
     <title>Getting Started - PrairieGNAT</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="stylesheet" href="styles.css" />
+
+    <style>
+      ol {
+        list-style-position: inside;
+      }
+
+      ol li,
+      ul li {
+        margin-bottom: 0.5rem;
+      }
+
+      h3 {
+        color: var(--text-light);
+        margin-bottom: 1rem;
+      }
+
+      h4 {
+        color: var(--text-light);
+        margin-bottom: 0.5rem;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
     <header>
-        <div class="container">
-            <nav>
-                <a href="/" class="logo">
-                    <svg viewBox="0 0 32 32" fill="none">
-                        <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2"/>
-                        <path d="M16 8v8M16 20v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        <path d="M10 16h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    PrairieGNAT
-                </a>
-                <ul>
-                    <li><a href="/">Home</a></li>
-                    <li><a href="getting-started.html" style="color: var(--accent);">Getting Started</a></li>
-                    <li><a href="https://github.com/wrhalpin/PrairieGNAT">GitHub</a></li>
-                </ul>
-            </nav>
-        </div>
+      <div class="container">
+        <nav>
+          <a href="index.html" class="logo">
+            <img src="logo.png" alt="PrairieGNAT Logo" />
+            <span>PrairieGNAT</span>
+          </a>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li>
+              <a href="getting-started.html" style="color: var(--accent-lime)"
+                >Getting Started</a
+              >
+            </li>
+            <li>
+              <a href="https://github.com/wrhalpin/PrairieGNAT">GitHub</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
     </header>
 
     <main>
-        <section class="hero" style="padding: 3rem 0;">
-            <div class="container">
-                <h1>Getting Started with PrairieGNAT</h1>
-                <p class="tagline">Load your first STIX bundle in 3 minutes</p>
-            </div>
-        </section>
+      <section class="hero" style="padding: 3rem 0">
+        <div class="container">
+          <h1>Getting Started with PrairieGNAT</h1>
+          <p class="tagline">Load your first STIX bundle in 3 minutes</p>
+        </div>
+      </section>
 
-        <section>
-            <div class="container" style="max-width: 800px;">
-                <h2>Installation</h2>
+      <section>
+        <div class="container" style="max-width: 800px">
+          <h2>Installation</h2>
 
-                <h3 style="margin-top: 2rem;">1. Visit the Web App</h3>
-                <p>Open <a href="https://prairiegnat.pages.dev" style="color: var(--accent);">https://prairiegnat.pages.dev</a> in your browser.</p>
+          <h3 style="margin-top: 2rem">1. Visit the Web App</h3>
+          <p>
+            Open
+            <a href="https://prairiegnat.pages.dev" style="color: var(--accent)"
+              >https://prairiegnat.pages.dev</a
+            >
+            in your browser.
+          </p>
 
-                <h3>2. Install as PWA</h3>
-                <p><strong>On iOS (Safari):</strong></p>
-                <ol style="margin-left: 2rem;">
-                    <li>Tap the Share button at the bottom</li>
-                    <li>Scroll down and tap "Add to Home Screen"</li>
-                    <li>Tap "Add" in the confirmation dialog</li>
-                </ol>
+          <h3>2. Install as PWA</h3>
+          <p><strong>On iOS (Safari):</strong></p>
+          <ol style="margin-left: 2rem">
+            <li>Tap the Share button at the bottom</li>
+            <li>Scroll down and tap "Add to Home Screen"</li>
+            <li>Tap "Add" in the confirmation dialog</li>
+          </ol>
 
-                <p style="margin-top: 1rem;"><strong>On Android (Chrome):</strong></p>
-                <ol style="margin-left: 2rem;">
-                    <li>Tap the menu (⋮) in the top right</li>
-                    <li>Tap "Install app"</li>
-                    <li>Confirm the installation</li>
-                </ol>
+          <p style="margin-top: 1rem"><strong>On Android (Chrome):</strong></p>
+          <ol style="margin-left: 2rem">
+            <li>Tap the menu (⋮) in the top right</li>
+            <li>Tap "Install app"</li>
+            <li>Confirm the installation</li>
+          </ol>
 
-                <p style="margin-top: 1rem;"><strong>On Desktop (Chrome/Edge):</strong></p>
-                <ol style="margin-left: 2rem;">
-                    <li>Look for the install icon in the address bar</li>
-                    <li>Click the icon</li>
-                    <li>Confirm installation</li>
-                </ol>
+          <p style="margin-top: 1rem">
+            <strong>On Desktop (Chrome/Edge):</strong>
+          </p>
+          <ol style="margin-left: 2rem">
+            <li>Look for the install icon in the address bar</li>
+            <li>Click the icon</li>
+            <li>Confirm installation</li>
+          </ol>
 
-                <h3>3. Load Your First Bundle</h3>
-                <p>When you open PrairieGNAT, you'll see the Library view with three ways to load bundles:</p>
+          <h3>3. Load Your First Bundle</h3>
+          <p>
+            When you open PrairieGNAT, you'll see the Library view with four
+            ways to load bundles:
+          </p>
 
-                <div class="feature-card" style="margin-top: 1rem;">
-                    <h4>📂 Open Bundle File</h4>
-                    <p>Click to select a STIX bundle JSON file from your device (.json or .stix format).</p>
-                </div>
+          <div class="feature-card" style="margin-top: 1rem">
+            <h4>📂 Open Bundle File</h4>
+            <p>
+              Click to select a STIX bundle JSON file from your device (.json or
+              .stix format).
+            </p>
+          </div>
 
-                <div class="feature-card">
-                    <h4>🧪 Load Test Bundle</h4>
-                    <p>Try the included test bundle with sample STIX objects to explore features without your own data.</p>
-                </div>
+          <div class="feature-card">
+            <h4>🧪 Load Test Bundle</h4>
+            <p>
+              Try the included test bundle with sample STIX objects to explore
+              features without your own data.
+            </p>
+          </div>
 
-                <div class="feature-card">
-                    <h4>📋 Paste JSON</h4>
-                    <p>Paste raw STIX bundle JSON directly. Useful for bundles from email or messaging apps.</p>
-                </div>
+          <div class="feature-card">
+            <h4>📋 Paste JSON</h4>
+            <p>
+              Paste raw STIX bundle JSON directly. Useful for bundles from email
+              or messaging apps.
+            </p>
+          </div>
 
-                <div class="feature-card">
-                    <h4>🔗 Load from URL</h4>
-                    <p>Fetch a bundle from HTTP endpoint or TAXII 2.1 server with optional API key authentication.</p>
-                </div>
+          <div class="feature-card">
+            <h4>🔗 Load from URL</h4>
+            <p>
+              Fetch a bundle from HTTP endpoint or TAXII 2.1 server with
+              optional API key authentication.
+            </p>
+          </div>
 
-                <h3 style="margin-top: 2rem;">4. Explore Your Bundle</h3>
-                <p>Once loaded, you'll see:</p>
-                <ul style="margin-left: 2rem;">
-                    <li><strong>Library:</strong> All loaded bundles with bookmark counts</li>
-                    <li><strong>Bundle Detail:</strong> Objects grouped by type (Indicator, Malware, etc.)</li>
-                    <li><strong>Object Detail:</strong> Full details with defanged URLs/IPs, related objects</li>
-                    <li><strong>Search:</strong> Find objects across all bundles</li>
-                </ul>
+          <h3 style="margin-top: 2rem">4. Explore Your Bundle</h3>
+          <p>Once loaded, you'll see:</p>
+          <ul style="margin-left: 2rem">
+            <li>
+              <strong>Library:</strong> All loaded bundles with bookmark counts
+            </li>
+            <li>
+              <strong>Bundle Detail:</strong> Objects grouped by type
+              (Indicator, Malware, etc.)
+            </li>
+            <li>
+              <strong>Object Detail:</strong> Full details with defanged
+              URLs/IPs, related objects
+            </li>
+            <li><strong>Search:</strong> Find objects across all bundles</li>
+          </ul>
 
-                <h3 style="margin-top: 2rem;">5. Use Key Features</h3>
+          <h3 style="margin-top: 2rem">5. Use Key Features</h3>
 
-                <div style="background: var(--secondary); padding: 1.5rem; border-radius: 8px; margin-top: 1rem; border-left: 4px solid var(--accent);">
-                    <h4 style="margin-bottom: 0.5rem;">⭐ Bookmarks</h4>
-                    <p>Click the star icon on any object to bookmark it. Filter your library by "Bookmarked" tab to see only starred items.</p>
-                </div>
+          <div
+            style="
+              background: var(--secondary);
+              padding: 1.5rem;
+              border-radius: 8px;
+              margin-top: 1rem;
+              border-left: 4px solid var(--accent);
+            "
+          >
+            <h4 style="margin-bottom: 0.5rem">⭐ Bookmarks</h4>
+            <p>
+              Click the star icon on any object to bookmark it. Filter your
+              library by "Bookmarked" tab to see only starred items.
+            </p>
+          </div>
 
-                <div style="background: var(--secondary); padding: 1.5rem; border-radius: 8px; margin-top: 1rem; border-left: 4px solid var(--success);">
-                    <h4 style="margin-bottom: 0.5rem;">✓ Read State</h4>
-                    <p>Mark objects as read with the checkmark toggle. Read objects show a green indicator in the object list.</p>
-                </div>
+          <div
+            style="
+              background: var(--secondary);
+              padding: 1.5rem;
+              border-radius: 8px;
+              margin-top: 1rem;
+              border-left: 4px solid var(--success);
+            "
+          >
+            <h4 style="margin-bottom: 0.5rem">✓ Read State</h4>
+            <p>
+              Mark objects as read with the checkmark toggle. Read objects show
+              a green indicator in the object list.
+            </p>
+          </div>
 
-                <div style="background: var(--secondary); padding: 1.5rem; border-radius: 8px; margin-top: 1rem; border-left: 4px solid var(--warning);">
-                    <h4 style="margin-bottom: 0.5rem;">🚫 Defanging</h4>
-                    <p>On URLs and IPs, click the eye icon to toggle between fanged (real) and defanged safe versions. Copy either version.</p>
-                </div>
+          <div
+            style="
+              background: var(--secondary);
+              padding: 1.5rem;
+              border-radius: 8px;
+              margin-top: 1rem;
+              border-left: 4px solid var(--warning);
+            "
+          >
+            <h4 style="margin-bottom: 0.5rem">🚫 Defanging</h4>
+            <p>
+              On URLs and IPs, click the eye icon to toggle between fanged
+              (real) and defanged safe versions. Copy either version.
+            </p>
+          </div>
 
-                <div style="background: var(--secondary); padding: 1.5rem; border-radius: 8px; margin-top: 1rem; border-left: 4px solid var(--error);">
-                    <h4 style="margin-bottom: 0.5rem;">🔍 Search</h4>
-                    <p>Use the Search tab to find objects across all loaded bundles. Filter results by object type or bundle source.</p>
-                </div>
+          <div
+            style="
+              background: var(--secondary);
+              padding: 1.5rem;
+              border-radius: 8px;
+              margin-top: 1rem;
+              border-left: 4px solid var(--error);
+            "
+          >
+            <h4 style="margin-bottom: 0.5rem">🔍 Search</h4>
+            <p>
+              Use the Search tab to find objects across all loaded bundles.
+              Filter results by object type or bundle source.
+            </p>
+          </div>
 
-                <h3 style="margin-top: 2rem;">6. GNAT Mode (Optional)</h3>
-                <p>To connect to a GNAT instance:</p>
-                <ol style="margin-left: 2rem;">
-                    <li>Go to Settings (⚙️ tab)</li>
-                    <li>Select "GNAT-aware (Phase 3)"</li>
-                    <li>Enter your GNAT instance URL (e.g., https://gnat.example.com)</li>
-                    <li>Enter your API key</li>
-                    <li>Click "Test Connection"</li>
-                    <li>Click "Save Settings"</li>
-                </ol>
-                <p style="margin-top: 1rem;">Once configured, a "📡 Feed" tab appears with your dissemination reports.</p>
+          <h3 style="margin-top: 2rem">6. GNAT Mode (Optional)</h3>
+          <p>To connect to a GNAT instance:</p>
+          <ol style="margin-left: 2rem">
+            <li>Go to Settings (⚙️ tab)</li>
+            <li>Select "GNAT-aware (Phase 3)"</li>
+            <li>
+              Enter your GNAT instance URL (e.g., https://gnat.example.com)
+            </li>
+            <li>Enter your API key</li>
+            <li>Click "Test Connection"</li>
+            <li>Click "Save Settings"</li>
+          </ol>
+          <p style="margin-top: 1rem">
+            Once configured, a "📡 Feed" tab appears with your dissemination
+            reports.
+          </p>
 
-                <h3 style="margin-top: 2rem;">Tips & Tricks</h3>
-                <ul style="margin-left: 2rem;">
-                    <li><strong>Dark mode:</strong> Click the 🌙 icon to toggle. Defaults to system preference.</li>
-                    <li><strong>Offline:</strong> The app works fully offline after first load. Service worker caches everything.</li>
-                    <li><strong>Large bundles:</strong> Bundles with 1000+ objects use virtualization for smooth scrolling.</li>
-                    <li><strong>TLP filtering:</strong> In Bundle view, quickly filter by TLP (CLEAR, GREEN, AMBER, RED).</li>
-                    <li><strong>Cache clearing:</strong> Go to Settings to clear all cached bundles and start fresh.</li>
-                </ul>
+          <h3 style="margin-top: 2rem">Tips & Tricks</h3>
+          <ul style="margin-left: 2rem">
+            <li>
+              <strong>Dark mode:</strong> Click the 🌙 icon to toggle. Defaults
+              to system preference.
+            </li>
+            <li>
+              <strong>Offline:</strong> The app works fully offline after first
+              load. Service worker caches everything.
+            </li>
+            <li>
+              <strong>Large bundles:</strong> Bundles with 1000+ objects use
+              virtualization for smooth scrolling.
+            </li>
+            <li>
+              <strong>TLP filtering:</strong> In Bundle view, quickly filter by
+              TLP (CLEAR, GREEN, AMBER, RED).
+            </li>
+            <li>
+              <strong>Cache clearing:</strong> Go to Settings to clear all
+              cached bundles and start fresh.
+            </li>
+          </ul>
 
-                <h3 style="margin-top: 2rem;">Troubleshooting</h3>
+          <h3 style="margin-top: 2rem">Troubleshooting</h3>
 
-                <div style="background: rgba(239, 68, 68, 0.1); padding: 1.5rem; border-radius: 8px; margin-top: 1rem; border-left: 4px solid var(--error);">
-                    <h4 style="color: var(--error); margin-bottom: 0.5rem;">❓ "Bundle not found" error</h4>
-                    <p>Make sure the bundle is valid STIX 2.1 JSON. Check that it has an "id" field and "objects" array.</p>
-                </div>
+          <div
+            style="
+              background: rgba(239, 68, 68, 0.1);
+              padding: 1.5rem;
+              border-radius: 8px;
+              margin-top: 1rem;
+              border-left: 4px solid var(--error);
+            "
+          >
+            <h4 style="color: var(--error); margin-bottom: 0.5rem">
+              ❓ "Bundle not found" error
+            </h4>
+            <p>
+              Make sure the bundle is valid STIX 2.1 JSON. Check that it has an
+              "id" field and "objects" array.
+            </p>
+          </div>
 
-                <div style="background: rgba(239, 68, 68, 0.1); padding: 1.5rem; border-radius: 8px; margin-top: 1rem; border-left: 4px solid var(--error);">
-                    <h4 style="color: var(--error); margin-bottom: 0.5rem;">❓ App won't install on iOS</h4>
-                    <p>Make sure you're using Safari (not Chrome). iOS PWAs require Safari for installation. Also check that you're on iOS 16.4+.</p>
-                </div>
+          <div
+            style="
+              background: rgba(239, 68, 68, 0.1);
+              padding: 1.5rem;
+              border-radius: 8px;
+              margin-top: 1rem;
+              border-left: 4px solid var(--error);
+            "
+          >
+            <h4 style="color: var(--error); margin-bottom: 0.5rem">
+              ❓ App won't install on iOS
+            </h4>
+            <p>
+              Make sure you're using Safari (not Chrome). iOS PWAs require
+              Safari for installation.
+            </p>
+          </div>
 
-                <div style="background: rgba(239, 68, 68, 0.1); padding: 1.5rem; border-radius: 8px; margin-top: 1rem; border-left: 4px solid var(--error);">
-                    <h4 style="color: var(--error); margin-bottom: 0.5rem;">❓ GNAT connection fails</h4>
-                    <p>Check that your GNAT instance URL is correct and accessible. Verify your API key is valid. Check that HTTPS is used.</p>
-                </div>
+          <div
+            style="
+              background: rgba(239, 68, 68, 0.1);
+              padding: 1.5rem;
+              border-radius: 8px;
+              margin-top: 1rem;
+              border-left: 4px solid var(--error);
+            "
+          >
+            <h4 style="color: var(--error); margin-bottom: 0.5rem">
+              ❓ GNAT connection fails
+            </h4>
+            <p>
+              Check that your GNAT instance URL is correct and accessible.
+              Verify your API key is valid. Check that HTTPS is used.
+            </p>
+          </div>
 
-                <h3 style="margin-top: 2rem;">Next Steps</h3>
-                <p>
-                    Once you're comfortable with the basics:
-                </p>
-                <ul style="margin-left: 2rem;">
-                    <li>Load real STIX bundles from your threat intel feeds</li>
-                    <li>Set up GNAT integration for dissemination feeds</li>
-                    <li>Explore the search and filtering capabilities</li>
-                    <li>Provide feedback on the GitHub issue tracker</li>
-                </ul>
+          <h3 style="margin-top: 2rem">Next Steps</h3>
+          <p>Once you're comfortable with the basics:</p>
+          <ul style="margin-left: 2rem">
+            <li>Load real STIX bundles from your threat intel feeds</li>
+            <li>Set up GNAT integration for dissemination feeds</li>
+            <li>Explore the search and filtering capabilities</li>
+            <li>Provide feedback on the GitHub issue tracker</li>
+          </ul>
 
-                <p style="margin-top: 2rem; color: var(--text-muted);">
-                    <strong>Need help?</strong> Check the <a href="https://github.com/wrhalpin/PrairieGNAT" style="color: var(--accent);">GitHub repository</a> or open an issue.
-                </p>
-            </div>
-        </section>
+          <p style="margin-top: 2rem; color: var(--text-muted)">
+            <strong>Need help?</strong> Check the
+            <a
+              href="https://github.com/wrhalpin/PrairieGNAT"
+              style="color: var(--accent)"
+              >GitHub repository</a
+            >
+            or open an issue.
+          </p>
+        </div>
+      </section>
     </main>
 
     <footer>
-        <div class="container">
-            <div class="footer-links">
-                <a href="https://github.com/wrhalpin/PrairieGNAT">GitHub</a>
-                <a href="https://github.com/wrhalpin/PrairieGNAT/issues">Issues</a>
-                <a href="/">Home</a>
-            </div>
-            <p>&copy; 2026 PrairieGNAT. Apache 2.0 License.</p>
+      <div class="container">
+        <div class="footer-links">
+          <a href="https://github.com/wrhalpin/PrairieGNAT">GitHub</a>
+          <a href="https://github.com/wrhalpin/PrairieGNAT/issues">Issues</a>
+          <a href="index.html">Home</a>
         </div>
+        <p>&copy; 2026 PrairieGNAT. Apache 2.0 License.</p>
+      </div>
     </footer>
-
-    <style>
-        ol {
-            list-style-position: inside;
-        }
-
-        ol li, ul li {
-            margin-bottom: 0.5rem;
-        }
-
-        h3 {
-            color: var(--text-light);
-            margin-bottom: 1rem;
-        }
-
-        h4 {
-            color: var(--text-light);
-            margin-bottom: 0.5rem;
-        }
-
-        a {
-            color: var(--accent);
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
-</body>
+  </body>
 </html>

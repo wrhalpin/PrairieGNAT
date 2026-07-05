@@ -1,6 +1,10 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
-  import { loadBundlesAsync, saveBundleAsync, getAllBookmarkCountsAsync } from '$lib/storage/db';
+  import {
+    loadBundlesAsync,
+    saveBundleAsync,
+    getAllBookmarkCountsAsync,
+  } from '$lib/storage/db';
   import { parseBundle } from '$lib/stix/parser';
   import type { Bundle } from '$lib/stix/types';
 
@@ -43,7 +47,9 @@
 
   // Reactive so the All/Bookmarked toggle actually re-filters the list
   $: filteredBundles =
-    filterMode === 'bookmarked' ? bundles.filter((b) => b.bookmarkCount > 0) : bundles;
+    filterMode === 'bookmarked'
+      ? bundles.filter((b) => b.bookmarkCount > 0)
+      : bundles;
 
   function addOrReplaceBundle(entry: BundleEntry) {
     // Reloading an existing bundle replaces its entry (duplicate keys crash
@@ -91,12 +97,19 @@
       loading = true;
       const response = await fetch('/test-bundle-small.json');
       if (!response.ok) {
-        throw new Error(`Could not fetch test bundle (HTTP ${response.status})`);
+        throw new Error(
+          `Could not fetch test bundle (HTTP ${response.status})`
+        );
       }
       const bundleData = (await response.json()) as Bundle;
 
       parseBundle(JSON.stringify(bundleData));
-      await saveBundleAsync(bundleData.id, 'Test Bundle (Small)', bundleData, 'file');
+      await saveBundleAsync(
+        bundleData.id,
+        'Test Bundle (Small)',
+        bundleData,
+        'file'
+      );
 
       addOrReplaceBundle({
         id: bundleData.id,
@@ -123,7 +136,9 @@
   <h1 class="text-2xl font-bold mb-4">📚 Library</h1>
 
   {#if error}
-    <div class="mb-4 p-3 rounded-lg bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
+    <div
+      class="mb-4 p-3 rounded-lg bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
+    >
       {error}
     </div>
   {/if}
@@ -200,7 +215,9 @@
 
     {#if filteredBundles.length === 0}
       <p class="text-center text-slate-500 dark:text-slate-400 py-8">
-        {filterMode === 'bookmarked' ? 'No bookmarked items yet.' : 'No bundles found.'}
+        {filterMode === 'bookmarked'
+          ? 'No bookmarked items yet.'
+          : 'No bundles found.'}
       </p>
     {:else}
       <div class="space-y-2">
@@ -214,14 +231,20 @@
                 <div class="flex items-center gap-2 mb-1">
                   <p class="font-semibold">{bundle.name}</p>
                   {#if bundle.bookmarkCount > 0}
-                    <span class="px-2 py-0.5 rounded-full text-xs bg-yellow-200 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
+                    <span
+                      class="px-2 py-0.5 rounded-full text-xs bg-yellow-200 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200"
+                    >
                       ⭐ {bundle.bookmarkCount}
                     </span>
                   {/if}
                 </div>
-                <p class="text-sm text-slate-600 dark:text-slate-400">{bundle.objectCount} objects</p>
+                <p class="text-sm text-slate-600 dark:text-slate-400">
+                  {bundle.objectCount} objects
+                </p>
               </div>
-              <p class="text-xs text-slate-500 dark:text-slate-500">{new Date(bundle.openedAt).toLocaleDateString()}</p>
+              <p class="text-xs text-slate-500 dark:text-slate-500">
+                {new Date(bundle.openedAt).toLocaleDateString()}
+              </p>
             </div>
           </button>
         {/each}

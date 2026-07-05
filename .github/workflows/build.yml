@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [20.x, 22.x]
 
     steps:
       - uses: actions/checkout@v4
@@ -42,19 +42,16 @@ jobs:
 
       - name: Check bundle size
         run: |
-          size=$(stat -f%z dist/assets/index-*.js 2>/dev/null || stat -c%s dist/assets/index-*.js)
-          gzip_size=$(gzip -c dist/assets/index-*.js | wc -c)
-          echo "Bundle size: $(numfmt --to=iec-i --suffix=B $size 2>/dev/null || echo '$size bytes')"
-          echo "Gzipped size: $(numfmt --to=iec-i --suffix=B $gzip_size 2>/dev/null || echo '$gzip_size bytes')"
-          # Fail if gzip exceeds 50KB (leave room for growth)
-          if [ $gzip_size -gt 52428800 ]; then
-            echo "Bundle size exceeded 50KB gzipped!"
+          gzip_size=$(cat dist/assets/*.js | gzip | wc -c)
+          echo "Total JS gzipped: ${gzip_size} bytes"
+          # Project budget is 200KB gzip (see CLAUDE.md)
+          if [ "$gzip_size" -gt 204800 ]; then
+            echo "Bundle size exceeded 200KB gzipped!"
             exit 1
           fi
 
       - name: Run tests
         run: npm run test
-        continue-on-error: true
 
       - name: Upload build artifacts
         if: always()
