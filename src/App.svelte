@@ -17,6 +17,7 @@
   let routeParams: Record<string, string> = {};
   let isDarkMode = false;
   let gnatMode = false;
+  let mainEl: HTMLElement;
 
   function toggleDarkMode() {
     isDarkMode = !isDarkMode;
@@ -24,10 +25,59 @@
     localStorage.setItem('darkMode', isDarkMode ? 'true' : 'false');
   }
 
-  function navigate(route: Route, params: Record<string, string> = {}) {
+  function urlFor(route: Route, params: Record<string, string>): string {
+    switch (route) {
+      case 'library':
+        return '/';
+      case 'bundle':
+        return `/bundle/${encodeURIComponent(params.bundleId)}`;
+      case 'object':
+        return `/bundle/${encodeURIComponent(params.bundleId)}/object/${encodeURIComponent(params.objectId)}`;
+      default:
+        return `/${route}`;
+    }
+  }
+
+  function parseLocation(): { route: Route; params: Record<string, string> } {
+    const parts = window.location.pathname.split('/').filter(Boolean);
+    if (parts[0] === 'bundle' && parts[1]) {
+      const bundleId = decodeURIComponent(parts[1]);
+      if (parts[2] === 'object' && parts[3]) {
+        return { route: 'object', params: { bundleId, objectId: decodeURIComponent(parts[3]) } };
+      }
+      return { route: 'bundle', params: { bundleId } };
+    }
+    const simple: Route[] = ['search', 'settings', 'feed', 'paste', 'url'];
+    if (simple.includes(parts[0] as Route)) {
+      return { route: parts[0] as Route, params: {} };
+    }
+    return { route: 'library', params: {} };
+  }
+
+  function applyRoute(route: Route, params: Record<string, string>) {
     currentRoute = route;
     routeParams = params;
-    window.scrollTo(0, 0);
+    // <main> is the scroll container, not the window
+    mainEl?.scrollTo(0, 0);
+  }
+
+  function navigate(route: Route, params: Record<string, string> = {}, replace = false) {
+    const url = urlFor(route, params);
+    if (replace) {
+      history.replaceState({ route, params }, '', url);
+    } else {
+      history.pushState({ route, params }, '', url);
+    }
+    applyRoute(route, params);
+  }
+
+  function handlePopState(event: PopStateEvent) {
+    if (event.state?.route) {
+      applyRoute(event.state.route as Route, event.state.params || {});
+    } else {
+      const loc = parseLocation();
+      applyRoute(loc.route, loc.params);
+    }
   }
 
   async function handleSharedFile(fileName: string, fileContent: string) {
@@ -70,10 +120,15 @@
       document.documentElement.classList.add('dark');
     }
 
-    // Check if app was launched as share target
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('shared') === '1') {
-      window.history.replaceState(null, '', '/');
+    // Capture the query string before route restoration rewrites the URL
+    const launchedAsShareTarget =
+      new URLSearchParams(window.location.search).get('shared') === '1';
+
+    // Restore the route from the URL (deep link / reload)
+    const initial = parseLocation();
+    navigate(initial.route, initial.params, true);
+
+    if (launchedAsShareTarget) {
       await consumeSharedBundle();
     }
 
@@ -84,20 +139,18 @@
     } catch (e) {
       console.error('Failed to load settings:', e);
     }
+
+    // A feed deep link without GNAT mode configured has nothing to show
+    if (currentRoute === 'feed' && !gnatMode) {
+      navigate('library', {}, true);
+    }
   });
 </script>
 
-<svelte:window
-  on:popstate={() => {
-    const path = window.location.pathname;
-    if (path === '/') navigate('library');
-    else if (path.startsWith('/search')) navigate('search');
-    else if (path.startsWith('/settings')) navigate('settings');
-  }}
-/>
+<svelte:window on:popstate={handlePopState} />
 
 <div class="flex flex-col h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50">
-  <main class="flex-1 overflow-auto">
+  <main class="flex-1 overflow-auto" bind:this={mainEl}>
     {#if currentRoute === 'library'}
       <Library on:navigate={(e) => navigate(e.detail.route, e.detail.params)} />
     {:else if currentRoute === 'search'}

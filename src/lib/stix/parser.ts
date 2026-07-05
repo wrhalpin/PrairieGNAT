@@ -3,7 +3,10 @@ import type { Bundle, StixObject, Indicator, ThreatActor, Malware, Campaign } fr
 export interface ParsedBundle {
   bundle: Bundle;
   objectsById: Map<string, StixObject>;
-  relationshipsBy: Map<string, string[]>; // target_ref -> source_refs
+  // object id -> ids of relationship/sighting objects that reference it
+  // (both directions, so an indicator's page shows what it indicates and
+  // a malware's page shows what indicates it)
+  relationshipsBy: Map<string, string[]>;
   objectsByType: Map<string, StixObject[]>;
   markingsById: Map<string, any>;
 }
@@ -13,6 +16,10 @@ export function parseBundle(jsonString: string): ParsedBundle {
 
   if (!data || typeof data !== 'object' || data.type !== 'bundle') {
     throw new Error('Invalid STIX bundle: missing or incorrect type');
+  }
+
+  if (typeof data.id !== 'string' || !data.id) {
+    throw new Error('Invalid STIX bundle: missing required id');
   }
 
   // The STIX 2.1 spec makes `objects` optional on a bundle; treat a missing
@@ -45,15 +52,22 @@ export function parseBundle(jsonString: string): ParsedBundle {
     }
     objectsByType.get(obj.type)!.push(obj);
 
-    // Build relationship index
+    // Build relationship index (both endpoints, plus sighting refs)
+    const rel = obj as any;
+    const refs = new Set<string>();
     if (obj.type === 'relationship') {
-      const targetRef = (obj as any).target_ref;
-      if (targetRef) {
-        if (!relationshipsBy.has(targetRef)) {
-          relationshipsBy.set(targetRef, []);
-        }
-        relationshipsBy.get(targetRef)!.push(obj.id);
+      if (rel.source_ref) refs.add(rel.source_ref);
+      if (rel.target_ref) refs.add(rel.target_ref);
+    } else if (obj.type === 'sighting') {
+      if (rel.sighting_of_ref) refs.add(rel.sighting_of_ref);
+      for (const r of rel.observed_data_refs || []) refs.add(r);
+      for (const r of rel.where_sighted_refs || []) refs.add(r);
+    }
+    for (const ref of refs) {
+      if (!relationshipsBy.has(ref)) {
+        relationshipsBy.set(ref, []);
       }
+      relationshipsBy.get(ref)!.push(obj.id);
     }
 
     // Index marking definitions

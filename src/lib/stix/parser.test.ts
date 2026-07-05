@@ -52,6 +52,12 @@ describe('STIX Parser', () => {
     expect(() => parseBundle('null')).toThrow('Invalid STIX bundle');
   });
 
+  it('rejects a bundle without an id (required by spec, and our storage key)', () => {
+    expect(() => parseBundle(JSON.stringify({ type: 'bundle' }))).toThrow(
+      'missing required id',
+    );
+  });
+
   it('skips malformed entries without failing the whole bundle', () => {
     const bundle = {
       type: 'bundle',
@@ -71,7 +77,7 @@ describe('STIX Parser', () => {
     expect(result.objectsByType.has('undefined')).toBe(false);
   });
 
-  it('indexes relationships by target_ref', () => {
+  it('indexes relationships from both endpoints', () => {
     const bundle = {
       type: 'bundle',
       id: 'bundle--123',
@@ -90,5 +96,26 @@ describe('STIX Parser', () => {
 
     const result = parseBundle(JSON.stringify(bundle));
     expect(result.relationshipsBy.get('malware--1')).toEqual(['relationship--1']);
+    expect(result.relationshipsBy.get('indicator--1')).toEqual(['relationship--1']);
+  });
+
+  it('indexes sightings against their referenced objects', () => {
+    const bundle = {
+      type: 'bundle',
+      id: 'bundle--123',
+      objects: [
+        { type: 'indicator', id: 'indicator--1', pattern: "[url:value = 'x']" },
+        {
+          type: 'sighting',
+          id: 'sighting--1',
+          sighting_of_ref: 'indicator--1',
+          where_sighted_refs: ['identity--1'],
+        },
+      ],
+    };
+
+    const result = parseBundle(JSON.stringify(bundle));
+    expect(result.relationshipsBy.get('indicator--1')).toEqual(['sighting--1']);
+    expect(result.relationshipsBy.get('identity--1')).toEqual(['sighting--1']);
   });
 });

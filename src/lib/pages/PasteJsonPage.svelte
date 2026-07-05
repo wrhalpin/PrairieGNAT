@@ -20,18 +20,18 @@
       error = null;
       loading = true;
 
-      const bundleData = JSON.parse(jsonText) as Bundle;
-      parseBundle(jsonText);
+      const { bundle: bundleData } = parseBundle(jsonText);
 
       await saveBundleAsync(
         bundleData.id,
         `Bundle ${new Date().toLocaleString()}`,
-        bundleData,
+        bundleData as Bundle,
         'paste'
       );
 
       dispatch('navigate', {
-        route: 'library',
+        route: 'bundle',
+        params: { bundleId: bundleData.id },
       });
     } catch (e) {
       error = `Invalid STIX bundle: ${e instanceof Error ? e.message : String(e)}`;

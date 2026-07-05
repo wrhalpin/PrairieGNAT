@@ -13,12 +13,18 @@
 
   const dispatch = createEventDispatcher();
 
+  interface RelatedEntry {
+    obj: StixObject;
+    label: string;
+  }
+
   let gnatInstanceUrl: string | null = null;
 
   let obj: StixObject | null = null;
   let parsed: Record<string, unknown> | null = null;
-  let relatedObjects: StixObject[] = [];
+  let relatedObjects: RelatedEntry[] = [];
   let error: string | null = null;
+  let loadToken = 0;
 
   onMount(async () => {
     try {
@@ -26,49 +32,97 @@
       if (settings.mode === 'gnat' && settings.gnatInstanceUrl) {
         gnatInstanceUrl = settings.gnatInstanceUrl;
       }
-
-      const loaded = await loadBundleAsync(bundleId);
-      if (!loaded) {
-        error = 'Bundle not found';
-        return;
-      }
-
-      parsed = parseBundle(JSON.stringify(loaded.bundle));
-      obj = (parsed.objectsById as Map<string, StixObject>).get(objectId) ?? null;
-
-      if (!obj) {
-        error = 'Object not found';
-        return;
-      }
-
-      const relationshipIds = (parsed.relationshipsBy as Map<string, string[]>).get(objectId) || [];
-      for (const relId of relationshipIds) {
-        const rel = (parsed.objectsById as Map<string, StixObject>).get(relId) as StixObject & Record<string, unknown>;
-        if (rel && rel.source_ref) {
-          const sourceObj = (parsed.objectsById as Map<string, StixObject>).get(rel.source_ref as string);
-          if (sourceObj) {
-            relatedObjects.push(sourceObj);
-          }
-        }
-      }
     } catch (e) {
-      error = `Error loading object: ${e instanceof Error ? e.message : String(e)}`;
+      console.error('Failed to load settings:', e);
     }
   });
 
+  // Reactive: navigating from one object to a related object keeps this
+  // component mounted with new props, so loading must re-run on prop change
+  // (onMount alone would keep showing the old object).
+  $: loadObject(bundleId, objectId);
+
+  async function loadObject(bId: string, oId: string) {
+    const token = ++loadToken;
+    error = null;
+    try {
+      const loaded = await loadBundleAsync(bId);
+      if (token !== loadToken) return; // superseded by a newer navigation
+
+      if (!loaded) {
+        error = 'Bundle not found';
+        obj = null;
+        relatedObjects = [];
+        return;
+      }
+
+      const p = parseBundle(JSON.stringify(loaded.bundle));
+      parsed = p;
+      const byId = p.objectsById as Map<string, StixObject>;
+      obj = byId.get(oId) ?? null;
+
+      if (!obj) {
+        error = 'Object not found';
+        relatedObjects = [];
+        return;
+      }
+
+      relatedObjects = buildRelated(p, oId);
+    } catch (e) {
+      if (token !== loadToken) return;
+      error = `Error loading object: ${e instanceof Error ? e.message : String(e)}`;
+      obj = null;
+      relatedObjects = [];
+    }
+  }
+
+  function buildRelated(p: Record<string, unknown>, oId: string): RelatedEntry[] {
+    const byId = p.objectsById as Map<string, StixObject>;
+    const relationshipIds = (p.relationshipsBy as Map<string, string[]>).get(oId) || [];
+    const entries: RelatedEntry[] = [];
+    const seen = new Set<string>();
+
+    for (const relId of relationshipIds) {
+      const rel = byId.get(relId) as (StixObject & Record<string, unknown>) | undefined;
+      if (!rel) continue;
+
+      if (rel.type === 'relationship') {
+        const relType = (rel.relationship_type as string) || 'related-to';
+        const outgoing = rel.source_ref === oId;
+        const otherId = (outgoing ? rel.target_ref : rel.source_ref) as string | undefined;
+        if (!otherId || seen.has(`${relId}:${otherId}`)) continue;
+        const other = byId.get(otherId);
+        if (!other) continue;
+        seen.add(`${relId}:${otherId}`);
+        entries.push({ obj: other, label: outgoing ? `${relType} →` : `← ${relType}` });
+      } else if (rel.type === 'sighting' && !seen.has(relId)) {
+        seen.add(relId);
+        entries.push({ obj: rel, label: 'sighted by' });
+      }
+    }
+    return entries;
+  }
+
   function openInGnat() {
     if (!gnatInstanceUrl || !obj) return;
-    const deepLink = `${gnatInstanceUrl}/objects/${objectId}`;
-    window.open(deepLink, '_blank');
+    const deepLink = `${gnatInstanceUrl}/objects/${encodeURIComponent(objectId)}`;
+    window.open(deepLink, '_blank', 'noopener,noreferrer');
+  }
+
+  function formatDate(value: unknown): string {
+    if (typeof value !== 'string' || !value) return '—';
+    const d = new Date(value);
+    return isNaN(d.getTime()) ? '—' : d.toLocaleString();
   }
 
   function getTLPLabel(markingIds: string[] | undefined): string {
-    if (!markingIds || markingIds.length === 0) return 'CLEAR';
+    if (!markingIds || markingIds.length === 0 || !parsed) return 'CLEAR';
 
     for (const markingId of markingIds) {
-      const marking = parsed.markingsById.get(markingId);
-      if (marking?.definition?.tlp) {
-        return marking.definition.tlp.replace('tlp:', '').toUpperCase();
+      const marking = (parsed.markingsById as Map<string, Record<string, unknown>>).get(markingId);
+      const tlp = (marking?.definition as Record<string, unknown> | undefined)?.tlp;
+      if (typeof tlp === 'string') {
+        return tlp.replace('tlp:', '').toUpperCase();
       }
     }
     return 'CLEAR';
@@ -78,8 +132,10 @@
     const tlp = getTLPLabel(markingIds).toLowerCase();
     const colors: { [key: string]: string } = {
       clear: 'bg-white dark:bg-slate-700',
+      white: 'bg-white dark:bg-slate-700', // TLP 1.0 name for CLEAR
       green: 'bg-green-100 dark:bg-green-900',
       amber: 'bg-amber-100 dark:bg-amber-900',
+      'amber+strict': 'bg-amber-100 dark:bg-amber-900',
       red: 'bg-red-100 dark:bg-red-900',
     };
     return colors[tlp] || colors.clear;
@@ -210,77 +266,9 @@
           </div>
         {/if}
       </div>
-    {:else if obj.type === 'malware'}
-      <div class="space-y-3 mb-4">
-        {#if obj.aliases && obj.aliases.length > 0}
-          <div>
-            <p class="text-xs font-semibold mb-1">Aliases:</p>
-            <p class="text-sm">{obj.aliases.join(', ')}</p>
-          </div>
-        {/if}
-
-        {#if obj.capabilities && obj.capabilities.length > 0}
-          <div>
-            <p class="text-xs font-semibold mb-1">Capabilities:</p>
-            <div class="flex flex-wrap gap-1">
-              {#each obj.capabilities as cap}
-                <span class="px-2 py-1 rounded text-xs bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200">
-                  {cap}
-                </span>
-              {/each}
-            </div>
-          </div>
-        {/if}
-
-        {#if obj.is_family !== undefined}
-          <div class="text-xs">
-            <strong>Family:</strong>
-            {obj.is_family ? 'Yes' : 'No'}
-          </div>
-        {/if}
-      </div>
-    {:else if obj.type === 'threat-actor'}
-      <div class="space-y-3 mb-4">
-        {#if obj.aliases && obj.aliases.length > 0}
-          <div>
-            <p class="text-xs font-semibold mb-1">Aliases:</p>
-            <p class="text-sm">{obj.aliases.join(', ')}</p>
-          </div>
-        {/if}
-
-        {#if obj.goals && obj.goals.length > 0}
-          <div>
-            <p class="text-xs font-semibold mb-1">Goals:</p>
-            <ul class="text-sm space-y-1">
-              {#each obj.goals as goal}
-                <li>• {goal}</li>
-              {/each}
-            </ul>
-          </div>
-        {/if}
-
-        {#if obj.sophistication}
-          <div class="text-xs">
-            <strong>Sophistication:</strong>
-            {obj.sophistication}
-          </div>
-        {/if}
-
-        {#if obj.resource_level}
-          <div class="text-xs">
-            <strong>Resource Level:</strong>
-            {obj.resource_level}
-          </div>
-        {/if}
-
-        {#if obj.primary_motivation}
-          <div class="text-xs">
-            <strong>Primary Motivation:</strong>
-            {obj.primary_motivation}
-          </div>
-        {/if}
-      </div>
     {/if}
+    <!-- malware/threat-actor details come from getObjectFields above;
+         dedicated blocks here previously rendered the same data twice -->
 
     {#if obj.labels && obj.labels.length > 0}
       <div class="mb-4">
@@ -299,15 +287,17 @@
       <div class="mt-6 pt-4 border-t border-slate-300 dark:border-slate-700">
         <h2 class="font-bold mb-3">Related Objects</h2>
         <div class="space-y-2">
-          {#each relatedObjects as related}
+          {#each relatedObjects as related (related.obj.id + related.label)}
             <button
-              on:click={() => openObject(related.id)}
+              on:click={() => openObject(related.obj.id)}
               class="w-full p-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition text-left"
             >
               <p class="font-semibold text-sm">
-                {getObjectIcon(related.type)} {related.name || related.id.split('--')[1]}
+                {getObjectIcon(related.obj.type)} {related.obj.name || related.obj.id.split('--')[1]}
               </p>
-              <p class="text-xs text-slate-600 dark:text-slate-400">{related.type}</p>
+              <p class="text-xs text-slate-600 dark:text-slate-400">
+                {related.obj.type} <span class="italic">({related.label})</span>
+              </p>
             </button>
           {/each}
         </div>
@@ -316,10 +306,10 @@
 
     <div class="mt-6 pt-4 border-t border-slate-300 dark:border-slate-700">
       <p class="text-xs text-slate-500 dark:text-slate-400">
-        <strong>Created:</strong> {new Date(obj.created || '').toLocaleString()}
+        <strong>Created:</strong> {formatDate(obj.created)}
       </p>
       <p class="text-xs text-slate-500 dark:text-slate-400">
-        <strong>Modified:</strong> {new Date(obj.modified || '').toLocaleString()}
+        <strong>Modified:</strong> {formatDate(obj.modified)}
       </p>
     </div>
   {/if}
