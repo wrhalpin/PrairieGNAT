@@ -1,6 +1,12 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
-  import { loadSettingsAsync, saveBundleAsync } from '$lib/storage/db';
+  import {
+    loadSettingsAsync,
+    saveSettingsAsync,
+    saveBundleAsync,
+    saveFeedCacheAsync,
+    getFeedCacheAsync,
+  } from '$lib/storage/db';
   import { parseBundle } from '$lib/stix/parser';
   import { TAXIIClient } from '$lib/taxii/client';
 
@@ -20,13 +26,6 @@
   let isOnline = navigator.onLine;
 
   onMount(async () => {
-    window.addEventListener('online', () => {
-      isOnline = true;
-    });
-    window.addEventListener('offline', () => {
-      isOnline = false;
-    });
-
     await loadFeed();
   });
 
@@ -70,12 +69,10 @@
         // Cache the feed
         const now = new Date().toLocaleString();
         lastSyncTime = now;
-        await saveFeedCache(reports, now);
+        await saveFeedCacheAsync(reports, now);
 
         // Update last sync time in settings
-        await (await import('$lib/storage/db')).saveSettingsAsync({
-          lastFeedSync: Date.now(),
-        });
+        await saveSettingsAsync({ lastFeedSync: Date.now() });
       } catch (e) {
         error = `Failed to fetch feed: ${e instanceof Error ? e.message : String(e)}`;
         console.error(error, e);
@@ -92,29 +89,13 @@
 
   async function loadCachedFeed() {
     try {
-      const { openDB } = await import('idb');
-      const db = await openDB('prairiegnat');
-      const cached = await db.get('settings', 'feed-cache');
+      const cached = await getFeedCacheAsync();
       if (cached) {
-        reports = cached.reports || [];
-        lastSyncTime = cached.syncTime || null;
+        reports = cached.reports as Report[];
+        lastSyncTime = cached.syncTime;
       }
     } catch (e) {
       console.error('Failed to load cached feed:', e);
-    }
-  }
-
-  async function saveFeedCache(reportsList: Report[], syncTime: string) {
-    try {
-      const { openDB } = await import('idb');
-      const db = await openDB('prairiegnat');
-      await db.put('settings', {
-        key: 'feed-cache',
-        reports: reportsList,
-        syncTime,
-      });
-    } catch (e) {
-      console.error('Failed to cache feed:', e);
     }
   }
 
@@ -161,6 +142,8 @@
     await loadFeed();
   }
 </script>
+
+<svelte:window on:online={() => (isOnline = true)} on:offline={() => (isOnline = false)} />
 
 <div class="p-4 pb-20">
   <div class="flex justify-between items-center mb-4">

@@ -40,6 +40,8 @@
     return (start > 0 ? '...' : '') + snippet + (end < text.length ? '...' : '');
   }
 
+  const MAX_RESULTS = 100;
+
   function searchBundles(searchQuery: string) {
     if (!searchQuery.trim()) {
       results = [];
@@ -49,7 +51,8 @@
     const q = searchQuery.toLowerCase();
     const allResults: SearchResult[] = [];
 
-    bundles.forEach((bundleRecord: Record<string, unknown>, bundleIndex) => {
+    outer: for (let bundleIndex = 0; bundleIndex < bundles.length; bundleIndex++) {
+      const bundleRecord = bundles[bundleIndex];
       const parsed = parseBundle(JSON.stringify(bundleRecord.bundle));
 
       for (const obj of (parsed.objectsById as Map<string, StixObject>).values()) {
@@ -68,31 +71,25 @@
             snippet,
           });
 
-          if (allResults.length >= 100) return; // Collect up to 100
+          if (allResults.length >= MAX_RESULTS) break outer;
         }
       }
-    });
+    }
 
     results = allResults;
   }
 
-  function getFilteredResults() {
-    return results.filter((r) => {
-      if (filterType && r.obj.type !== filterType) return false;
-      if (filterBundle && r.bundleId !== filterBundle) return false;
-      return true;
-    });
-  }
-
-  function getUniqueTypes() {
-    return Array.from(new Set(results.map((r) => r.obj.type))).sort();
-  }
-
-  function getUniqueBundles() {
-    return Array.from(new Set(results.map((r) => r.bundleId))).sort();
-  }
-
   $: searchBundles(query);
+
+  // Reactive declarations so filter chips actually re-filter the rendered
+  // list (template-called functions aren't re-run when their inputs change).
+  $: filteredResults = results.filter((r) => {
+    if (filterType && r.obj.type !== filterType) return false;
+    if (filterBundle && r.bundleId !== filterBundle) return false;
+    return true;
+  });
+  $: uniqueTypes = Array.from(new Set(results.map((r) => r.obj.type))).sort();
+  $: uniqueBundles = Array.from(new Set(results.map((r) => r.bundleId))).sort();
 
   function openObject(bundleId: string, objectId: string) {
     dispatch('navigate', {
@@ -119,11 +116,11 @@
   {:else}
     <div class="mb-4">
       <p class="text-sm text-slate-600 dark:text-slate-400 mb-3 font-semibold">
-        Found {getFilteredResults().length} result{getFilteredResults().length === 1 ? '' : 's'}
-        {results.length >= 100 ? ' (showing first 100)' : ''}
+        Found {filteredResults.length} result{filteredResults.length === 1 ? '' : 's'}
+        {results.length >= MAX_RESULTS ? ' (showing first 100)' : ''}
       </p>
 
-      {#if getUniqueTypes().length > 1}
+      {#if uniqueTypes.length > 1}
         <div class="mb-3">
           <p class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">Filter by type:</p>
           <div class="flex flex-wrap gap-1">
@@ -137,7 +134,7 @@
             >
               All
             </button>
-            {#each getUniqueTypes() as type}
+            {#each uniqueTypes as type}
               <button
                 on:click={() => (filterType = filterType === type ? null : type)}
                 class={`px-2 py-1 rounded text-xs font-semibold transition ${
@@ -153,7 +150,7 @@
         </div>
       {/if}
 
-      {#if getUniqueBundles().length > 1}
+      {#if uniqueBundles.length > 1}
         <div>
           <p class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">Filter by bundle:</p>
           <div class="flex flex-wrap gap-1">
@@ -167,7 +164,7 @@
             >
               All
             </button>
-            {#each getUniqueBundles() as bundleId}
+            {#each uniqueBundles as bundleId}
               <button
                 on:click={() => (filterBundle = filterBundle === bundleId ? null : bundleId)}
                 class={`px-2 py-1 rounded text-xs font-semibold transition ${
@@ -184,13 +181,13 @@
       {/if}
     </div>
 
-    {#if getFilteredResults().length === 0}
+    {#if filteredResults.length === 0}
       <p class="text-center text-slate-500 dark:text-slate-400 py-8">
         No matches found with current filters
       </p>
     {:else}
       <div class="space-y-2">
-        {#each getFilteredResults() as result (result.obj.id)}
+        {#each filteredResults as result (`${result.bundleId}:${result.obj.id}`)}
           <button
             on:click={() => openObject(result.bundleId, result.obj.id)}
             class="w-full p-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition text-left border-l-2 border-slate-300 dark:border-slate-700 hover:border-blue-500"

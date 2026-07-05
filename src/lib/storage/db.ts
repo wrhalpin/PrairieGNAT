@@ -170,6 +170,16 @@ export async function getBookmarksAsync(
   return bookmarked;
 }
 
+export async function getAllBookmarkCountsAsync(): Promise<Record<string, number>> {
+  const idb = await getDb();
+  const allBookmarks = await idb.getAll('bookmarks');
+  const counts: Record<string, number> = {};
+  for (const bm of allBookmarks) {
+    counts[bm.bundleId] = (counts[bm.bundleId] || 0) + 1;
+  }
+  return counts;
+}
+
 export async function setReadStateAsync(
   bundleId: string,
   objectId: string,
@@ -197,9 +207,27 @@ export async function getReadStateAsync(
   return readObjects;
 }
 
+export interface FeedCache {
+  reports: unknown[];
+  syncTime: string | null;
+}
+
+export async function saveFeedCacheAsync(reports: unknown[], syncTime: string): Promise<void> {
+  const idb = await getDb();
+  await idb.put('settings', { key: 'feed-cache', reports, syncTime });
+}
+
+export async function getFeedCacheAsync(): Promise<FeedCache | null> {
+  const idb = await getDb();
+  const cached = await idb.get('settings', 'feed-cache');
+  if (!cached) return null;
+  return { reports: cached.reports || [], syncTime: cached.syncTime || null };
+}
+
 export async function clearAllAsync(): Promise<void> {
   const idb = await getDb();
   await idb.clear('bundles');
   await idb.clear('bookmarks');
   await idb.clear('readState');
+  await idb.delete('settings', 'feed-cache');
 }

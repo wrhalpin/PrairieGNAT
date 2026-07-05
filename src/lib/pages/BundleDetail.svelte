@@ -53,28 +53,29 @@
     expandedTypes = expandedTypes;
   }
 
-  function getObjectCount(): number {
-    if (!parsed) return 0;
-    return (parsed.objectsByType as Map<string, unknown>).size;
-  }
+  const HIDDEN_TYPES = ['relationship', 'marking-definition'];
 
-  function getTotalObjectCount(): number {
-    if (!parsed) return 0;
-    return (parsed.objectsById as Map<string, unknown>).size;
-  }
+  // Reactive declarations, not template-called functions: Svelte only
+  // re-renders when variables referenced in the template change, so filters
+  // computed inside plain functions never update the list.
+  $: typeCount = parsed ? (parsed.objectsByType as Map<string, unknown>).size : 0;
+  $: totalCount = parsed ? (parsed.objectsById as Map<string, unknown>).size : 0;
 
-  function getObjectsByType() {
-    if (!parsed) return [];
+  $: typeGroups = computeTypeGroups(parsed, tlpFilter);
+  $: uniqueTLPs = computeUniqueTLPs(parsed);
 
-    const types = Array.from((parsed.objectsByType as Map<string, unknown>).keys()).sort();
+  function computeTypeGroups(p: Record<string, unknown> | null, filter: string | null) {
+    if (!p) return [];
+
+    const types = Array.from((p.objectsByType as Map<string, unknown>).keys()).sort();
     return types
-      .filter((t) => !['relationship', 'marking-definition'].includes(t))
+      .filter((t) => !HIDDEN_TYPES.includes(t))
       .map((t) => {
-        const objects = ((parsed.objectsByType as Map<string, unknown>).get(t) as Record<string, unknown>[]) || [];
+        const objects = ((p.objectsByType as Map<string, unknown>).get(t) as Record<string, unknown>[]) || [];
 
         // Filter by TLP if set
-        const filtered = tlpFilter
-          ? objects.filter((obj) => getTLPLabel((obj.object_marking_refs as string[]) || []) === tlpFilter)
+        const filtered = filter
+          ? objects.filter((obj) => getTLPLabel((obj.object_marking_refs as string[]) || []) === filter)
           : objects;
 
         return {
@@ -85,11 +86,13 @@
       });
   }
 
-  function getUniqueTLPs() {
-    if (!parsed) return [];
+  function computeUniqueTLPs(p: Record<string, unknown> | null) {
+    if (!p) return [];
 
     const tlps = new Set<string>();
-    for (const obj of ((parsed.objectsById as Map<string, Record<string, unknown>>).values())) {
+    for (const obj of ((p.objectsById as Map<string, Record<string, unknown>>).values())) {
+      // Only count TLPs of objects the list actually shows
+      if (HIDDEN_TYPES.includes(obj.type as string)) continue;
       tlps.add(getTLPLabel((obj.object_marking_refs as string[]) || []));
     }
     return Array.from(tlps).sort();
@@ -125,10 +128,10 @@
   {:else if bundle && parsed}
     <h1 class="text-2xl font-bold mb-2">{bundle.name}</h1>
     <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
-      {getObjectCount()} object types • {getTotalObjectCount()} total objects
+      {typeCount} object types • {totalCount} total objects
     </p>
 
-    {#if getUniqueTLPs().length > 1}
+    {#if uniqueTLPs.length > 1}
       <div class="mb-4">
         <p class="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">Filter by TLP:</p>
         <div class="flex flex-wrap gap-1">
@@ -142,7 +145,7 @@
           >
             All
           </button>
-          {#each getUniqueTLPs() as tlp}
+          {#each uniqueTLPs as tlp}
             <button
               on:click={() => (tlpFilter = tlpFilter === tlp ? null : tlp)}
               class={`px-2 py-1 rounded text-xs font-semibold transition ${
@@ -159,7 +162,7 @@
     {/if}
 
     <div class="space-y-2">
-      {#each getObjectsByType() as typeGroup (typeGroup.type)}
+      {#each typeGroups as typeGroup (typeGroup.type)}
         <button
           on:click={() => toggleType(typeGroup.type)}
           class="w-full p-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition text-left flex justify-between items-center"

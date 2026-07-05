@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from 'svelte';
-  import { loadBundlesAsync, saveBundleAsync, getBookmarksAsync } from '$lib/storage/db';
+  import { loadBundlesAsync, saveBundleAsync, getAllBookmarkCountsAsync } from '$lib/storage/db';
   import { parseBundle } from '$lib/stix/parser';
   import type { Bundle } from '$lib/stix/types';
 
@@ -23,13 +23,7 @@
   onMount(async () => {
     try {
       const stored = await loadBundlesAsync();
-      const bookmarks = await getBookmarksAsync();
-
-      // Count bookmarks per bundle
-      const counts: { [bundleId: string]: number } = {};
-      for (const [bundleId, objectIds] of bookmarks) {
-        counts[bundleId] = objectIds.size;
-      }
+      const counts = await getAllBookmarkCountsAsync();
 
       bundles = stored
         .map((b) => ({
@@ -42,15 +36,21 @@
         }))
         .sort((a, b) => b.openedAt - a.openedAt);
     } catch (e) {
-      console.error('Failed to load bundles:', e);
+      error = `Failed to load bundles: ${e instanceof Error ? e.message : String(e)}`;
+      console.error(error, e);
     }
   });
 
-  function getFilteredBundles() {
-    if (filterMode === 'bookmarked') {
-      return bundles.filter((b) => b.bookmarkCount > 0);
-    }
-    return bundles;
+  // Reactive so the All/Bookmarked toggle actually re-filters the list
+  $: filteredBundles =
+    filterMode === 'bookmarked' ? bundles.filter((b) => b.bookmarkCount > 0) : bundles;
+
+  function addOrReplaceBundle(entry: BundleEntry) {
+    // Reloading an existing bundle replaces its entry (duplicate keys crash
+    // the keyed each); keep its bookmark count.
+    const existing = bundles.find((b) => b.id === entry.id);
+    if (existing) entry.bookmarkCount = existing.bookmarkCount;
+    bundles = [entry, ...bundles.filter((b) => b.id !== entry.id)];
   }
 
   async function handleFileOpen(event: Event) {
@@ -67,21 +67,20 @@
       parseBundle(text);
       await saveBundleAsync(bundleData.id, file.name, bundleData, 'file');
 
-      const newBundle: BundleEntry = {
+      addOrReplaceBundle({
         id: bundleData.id,
         name: file.name,
         objectCount: bundleData.objects?.length || 0,
         openedAt: Date.now(),
         source: 'file',
         bookmarkCount: 0,
-      };
-      bundles = [newBundle, ...bundles];
-
-      input.value = '';
+      });
     } catch (e) {
       error = `Error loading file: ${e instanceof Error ? e.message : String(e)}`;
       console.error(error, e);
     } finally {
+      // Always reset so the same file can be re-selected after a failure
+      input.value = '';
       loading = false;
     }
   }
@@ -91,20 +90,22 @@
       error = null;
       loading = true;
       const response = await fetch('/test-bundle-small.json');
+      if (!response.ok) {
+        throw new Error(`Could not fetch test bundle (HTTP ${response.status})`);
+      }
       const bundleData = (await response.json()) as Bundle;
 
       parseBundle(JSON.stringify(bundleData));
       await saveBundleAsync(bundleData.id, 'Test Bundle (Small)', bundleData, 'file');
 
-      const newBundle: BundleEntry = {
+      addOrReplaceBundle({
         id: bundleData.id,
         name: 'Test Bundle (Small)',
         objectCount: bundleData.objects?.length || 0,
         openedAt: Date.now(),
         source: 'file',
         bookmarkCount: 0,
-      };
-      bundles = [newBundle, ...bundles];
+      });
     } catch (e) {
       error = `Error loading test bundle: ${e instanceof Error ? e.message : String(e)}`;
       console.error(error, e);
@@ -197,13 +198,13 @@
       </button>
     </div>
 
-    {#if getFilteredBundles().length === 0}
+    {#if filteredBundles.length === 0}
       <p class="text-center text-slate-500 dark:text-slate-400 py-8">
         {filterMode === 'bookmarked' ? 'No bookmarked items yet.' : 'No bundles found.'}
       </p>
     {:else}
       <div class="space-y-2">
-        {#each getFilteredBundles() as bundle (bundle.id)}
+        {#each filteredBundles as bundle (bundle.id)}
           <button
             on:click={() => openBundle(bundle.id)}
             class="w-full p-4 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition text-left"

@@ -34,11 +34,29 @@
     try {
       const bundleData = JSON.parse(fileContent);
       parseBundle(fileContent);
+      if (typeof bundleData.id !== 'string' || !bundleData.id) {
+        throw new Error('Bundle is missing its required "id" field');
+      }
       await saveBundleAsync(bundleData.id, fileName, bundleData, 'share');
       navigate('bundle', { bundleId: bundleData.id });
     } catch (e) {
       console.error('Error processing shared file:', e);
       alert(`Error loading shared file: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+
+  // The service worker stashes share-target POSTs in a cache (see src/sw.ts),
+  // because the POST is handled before this page exists to receive a message.
+  async function consumeSharedBundle() {
+    try {
+      const cache = await caches.open('share-target');
+      const response = await cache.match('/shared-bundle');
+      if (!response) return;
+      await cache.delete('/shared-bundle');
+      const fileName = decodeURIComponent(response.headers.get('X-File-Name') || 'shared-bundle.json');
+      await handleSharedFile(fileName, await response.text());
+    } catch (e) {
+      console.error('Error reading shared bundle:', e);
     }
   }
 
@@ -52,21 +70,11 @@
       document.documentElement.classList.add('dark');
     }
 
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(console.error);
-
-      // Listen for messages from service worker (share target)
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data.type === 'SHARE_TARGET') {
-          handleSharedFile(event.data.fileName, event.data.fileContent);
-        }
-      });
-    }
-
     // Check if app was launched as share target
     const params = new URLSearchParams(window.location.search);
     if (params.get('shared') === '1') {
       window.history.replaceState(null, '', '/');
+      await consumeSharedBundle();
     }
 
     // Load settings to check mode

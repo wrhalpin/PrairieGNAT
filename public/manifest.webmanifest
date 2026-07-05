@@ -28,20 +28,6 @@
       "purpose": "maskable"
     }
   ],
-  "screenshots": [
-    {
-      "src": "/screenshots/narrow.png",
-      "sizes": "540x720",
-      "type": "image/png",
-      "form_factor": "narrow"
-    },
-    {
-      "src": "/screenshots/wide.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide"
-    }
-  ],
   "share_target": {
     "action": "/",
     "method": "POST",
@@ -69,8 +55,7 @@
         "application/json": [".json", ".stix"],
         "application/stix+json": [".stix"],
         "text/plain": [".stix"]
-      },
-      "launch_type": "single-client"
+      }
     }
   ],
   "categories": ["productivity", "utilities"]
